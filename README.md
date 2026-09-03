@@ -47,10 +47,11 @@ pnpm build
 ## テスト・品質
 
 ```bash
-pnpm test
-pnpm typecheck
-pnpm lint
+pnpm check          # build + typecheck + lint + format:check + test（標準ゲート）
 ```
+
+ローカルでは `pnpm install` 後に git hooks が有効になります（commit 時 lint-staged、push 時 `pnpm check`）。  
+CI（GitHub Actions）も同じ `pnpm check` を実行します。詳細は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
 ## デモ実行
 

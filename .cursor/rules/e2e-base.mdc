@@ -13,12 +13,13 @@ alwaysApply: true
 
 ## やってよい / だめ
 
-- よい: MVP 仮説の検証、テスト、fixtures、薄い DX、resolver 精度、ドキュメント整備
-- だめ: NL→Playbook、Binding DB、クラウド CI ブラウザ、Auth/API Action、Plugin SDK の本格化、境界を壊す依存
+- よい: MVP 仮説の検証、テスト、fixtures、薄い DX、resolver 精度、ドキュメント整備、`pnpm check` / CI 品質ゲートの維持
+- だめ: NL→Playbook、Binding DB、CI での Playwright デモ（クラウドブラウザ）、Auth/API Action、Plugin SDK の本格化、境界を壊す依存
 
 ## 作業習慣
 
 - コミット・push はユーザー明示時のみ。勝手に作らない。
+- コード変更後は可能なら `pnpm check` を通し、落ちたら直してから完了とする。
 - `docs/`・examples・fixtures・コア実装は削除しない（AI/人間のコンテキスト資産）。
 - コメント・ドキュメント・コミットメッセージは日本語。
 - 秘密情報と生成物（`.env`、`reports/`、`dist/`）をコミットしない。
