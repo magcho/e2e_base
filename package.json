@@ -12,8 +12,23 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "prepare": "simple-git-hooks",
     "demo": "pnpm build && pnpm --filter @e2e-base/cli exec node ./dist/cli.js run ../../examples/submit-form.playbook --serve-fixtures --out ../../reports/latest",
     "playwright:install": "pnpm --filter @e2e-base/executor exec playwright install chromium"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged",
+    "pre-push": "pnpm check"
+  },
+  "lint-staged": {
+    "*.{ts,mjs,js,cjs}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{json,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=20",
@@ -24,7 +39,9 @@
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
+    "lint-staged": "^17.4.1",
     "prettier": "^3.5.3",
+    "simple-git-hooks": "^2.14.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1",
     "vitest": "^3.0.9"

@@ -26,12 +26,13 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 - heuristic / AI resolver の精度向上（根拠をレポートに残す）
 - テスト・fixtures・examples・ドキュメントの充実
 - 開発者体験（lint / typecheck / DX）の薄い改善
+- 品質ゲート（`pnpm check` / git hooks / CI の unit 検査）の維持・改善
 
 **やらない（明示的スコープ外）**
 
 - NL → Playbook Translation
 - Binding DB / 永続ストアの本格化
-- CI クラウドブラウザ
+- CI での Playwright ブラウザデモ（クラウドブラウザ）
 - Auth / API Action
 - Plugin SDK の完成
 - IR（`@e2e-base/core` の型）の無秩序な肥大化
@@ -49,13 +50,13 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 
 ```bash
 pnpm install
-pnpm playwright:install   # Chromium（初回）
+pnpm playwright:install   # Chromium（デモ用・初回）
 pnpm build
-pnpm test
-pnpm typecheck
-pnpm lint
+pnpm check                # typecheck + lint + format:check + test（必須ゲート）
 pnpm demo                 # reports/latest/report.html
 ```
+
+変更後・PR 前は `pnpm check` を通す。CI も同じゲート。hooks: commit=`lint-staged`、push=`pnpm check`。
 
 ## ドキュメントへのポインタ
 

@@ -18,24 +18,41 @@
 pnpm install
 pnpm playwright:install
 pnpm build
-pnpm test
+pnpm check
 ```
 
-Playwright のブラウザはリポジトリに含まれません。初回（または CI クリーン環境）では必ず `pnpm playwright:install` を実行してください。
+`pnpm install` 時に `simple-git-hooks` が入り、以降の commit / push で品質ゲートが走ります。  
+Playwright のブラウザはリポジトリに含まれません。デモ実行時（またはクリーン環境）では `pnpm playwright:install` を実行してください。ユニットテストの `pnpm check` には不要です。
 
 ## よく使うコマンド
 
 | コマンド | 内容 |
 |----------|------|
+| `pnpm check` | **統合品質ゲート**（typecheck → lint → format:check → test） |
 | `pnpm build` | 全パッケージを `tsc` ビルド |
 | `pnpm test` | Vitest（各パッケージ） |
 | `pnpm typecheck` | 型チェック（`--noEmit`） |
 | `pnpm lint` | ESLint |
-| `pnpm format` | Prettier で整形 |
+| `pnpm format` / `pnpm format:check` | Prettier 整形 / 検査 |
 | `pnpm demo` | fixtures 配信 + サンプル Playbook 実行 → `reports/latest/report.html` |
 | `pnpm playwright:install` | Chromium インストール |
 
-デモ成功後は `reports/latest/report.html` をブラウザで開き、各 Step の strategy / Binding / screenshot を確認します。
+PR 作成前や大きな変更後は `pnpm check` を通すのが標準フローです。
+
+## ローカル作業フロー（品質ゲート）
+
+| タイミング | 何が走るか |
+|------------|------------|
+| `git commit`（pre-commit） | `lint-staged`（staged な TS/JS に ESLint --fix、対象ファイルに Prettier） |
+| `git push`（pre-push） | `pnpm check`（typecheck / lint / format:check / test） |
+| 手動 / CI | 同じく `pnpm check` |
+
+フックを入れ直す場合: `pnpm prepare`（または再 `pnpm install`）。
+
+## CI
+
+GitHub Actions（[`.github/workflows/ci.yml`](../.github/workflows/ci.yml)）が `main` への push と全 PR で `pnpm check` を実行します。  
+ブラウザ付きデモ（`pnpm demo`）は CI では走らせません（クラウドブラウザはスコープ外）。
 
 ## パッケージの責務（要約）
 
