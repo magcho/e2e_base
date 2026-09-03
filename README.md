@@ -4,14 +4,23 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 
 最重要仮説: 「送信ボタン」のような **Semantic Target** を Resolve し、監査可能な形で実行・証跡を残せるか。
 
+## 最初に読む順
+
+1. 本 README（概要・最短セットアップ）
+2. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)（開発者オンボーディング）
+3. [AGENTS.md](AGENTS.md)（AI / エージェント向け指針）
+4. 必要に応じて `docs/` の設計ドキュメント
+
 ## ドキュメント
 
+- [開発者オンボーディング](docs/DEVELOPMENT.md)
 - [構想 (VISION)](docs/VISION.md)
 - [アーキテクチャ](docs/ARCHITECTURE.md)
 - [ドメインモデル](docs/DOMAIN_MODEL.md)
 - [Playbook DSL](docs/PLAYBOOK_DSL.md)
 - [MVP 計画](docs/MVP_PLAN.md)
 - [タスクボード](docs/TASKS.md)
+- [AGENTS.md](AGENTS.md) — AI 向けガイド
 
 ## パッケージ構成
 
@@ -25,18 +34,22 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 
 ## セットアップ
 
-要件: Node.js 20+, pnpm 9+
+要件: Node.js 20+（`.nvmrc`）、pnpm 9+（`packageManager` フィールド準拠）
 
 ```bash
 pnpm install
-pnpm playwright:install
+pnpm playwright:install   # Chromium（初回必須。リポジトリには含まれない）
 pnpm build
 ```
 
-## テスト
+任意の環境変数は `.env.example` を参照（実シークレットはコミットしない）。
+
+## テスト・品質
 
 ```bash
 pnpm test
+pnpm typecheck
+pnpm lint
 ```
 
 ## デモ実行
@@ -78,3 +91,7 @@ Playbook Parser → Scenario/AST → BrowserAction/Assertion/ToolCall
 ```
 
 操作語彙: `CLICK`, `TYPE`, `NAVIGATE`, `ASSERT visible`, `ASSERT text`, `CALL`
+
+## リモート同期について
+
+ローカルと `origin/main` が分岐している場合があります（過去に non-fast-forward で push 失敗）。手順の要点は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) の「リモートとの初回同期」を参照してください。エージェントは勝手に force push しません。
