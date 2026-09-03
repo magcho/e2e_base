@@ -1,0 +1,13 @@
+dist
+node_modules
+coverage
+reports
+playwright-report
+test-results
+.pnpm-store
+pnpm-lock.yaml
+*.tsbuildinfo
+
+# 設計ドキュメントは人手・AI コンテキスト資産として整形対象外
+docs/**
+*.md

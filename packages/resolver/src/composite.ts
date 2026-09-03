@@ -52,9 +52,7 @@ export async function resolveTarget(
 }
 
 /** Progressive Resolution: heuristic → AI（キーがある場合） */
-export function createDefaultResolver(
-  options: { apiKey?: string } = {},
-): TargetResolver {
+export function createDefaultResolver(options: { apiKey?: string } = {}): TargetResolver {
   const heuristic = new HeuristicResolver();
   const ai = new AiAssistedResolver({ apiKey: options.apiKey });
   return new CompositeResolver(ai.enabled ? [heuristic, ai] : [heuristic]);

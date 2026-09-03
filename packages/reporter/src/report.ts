@@ -12,7 +12,11 @@ function escapeHtml(s: string): string {
 
 function statusBadge(status: string): string {
   const color =
-    status === "passed" ? "#0a7f3f" : status === "failed" || status === "error" ? "#b00020" : "#666";
+    status === "passed"
+      ? "#0a7f3f"
+      : status === "failed" || status === "error"
+        ? "#b00020"
+        : "#666";
   return `<span class="badge" style="background:${color}">${escapeHtml(status)}</span>`;
 }
 
@@ -22,9 +26,7 @@ function stepBlock(step: StepResult, reportDir: string, index: number): string {
       <div class="meta">
         <div><strong>Resolution strategy</strong>: ${escapeHtml(step.binding.strategy)}</div>
         <div><strong>Confidence</strong>: ${step.binding.confidence}</div>
-        <div><strong>Locator</strong>: ${escapeHtml(
-          JSON.stringify(step.binding.locator),
-        )}</div>
+        <div><strong>Locator</strong>: ${escapeHtml(JSON.stringify(step.binding.locator))}</div>
         <div><strong>Rationale</strong>: ${escapeHtml(step.binding.rationale)}</div>
         ${
           step.binding.candidatesConsidered?.length
@@ -40,9 +42,7 @@ function stepBlock(step: StepResult, reportDir: string, index: number): string {
     : `<div class="meta"><em>Binding なし（NAVIGATE 等）</em></div>`;
 
   const evaluation = step.evaluation
-    ? `<div class="meta"><strong>Evaluation</strong>: ${escapeHtml(
-        step.evaluation.message,
-      )}${
+    ? `<div class="meta"><strong>Evaluation</strong>: ${escapeHtml(step.evaluation.message)}${
         step.evaluation.expected != null
           ? ` / expected=${escapeHtml(step.evaluation.expected)} actual=${escapeHtml(
               step.evaluation.actual ?? "",
@@ -66,9 +66,7 @@ function stepBlock(step: StepResult, reportDir: string, index: number): string {
     ${evaluation}
     ${
       step.observation
-        ? `<div class="meta"><strong>URL</strong>: ${escapeHtml(
-            step.observation.url ?? "",
-          )}</div>`
+        ? `<div class="meta"><strong>URL</strong>: ${escapeHtml(step.observation.url ?? "")}</div>`
         : ""
     }
     ${screenshot}

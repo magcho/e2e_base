@@ -4,11 +4,22 @@ coverage/
 .turbo/
 *.tsbuildinfo
 .DS_Store
+
+# 実行・テスト生成物
 reports/
 playwright-report/
 test-results/
-.env
-.env.local
 *.log
 
+# 秘密情報
+.env
+.env.local
+.env.*.local
+
+# パッケージマネージャ
 .pnpm-store/
+
+# エディタ（個人設定は無視、推奨設定はコミット）
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

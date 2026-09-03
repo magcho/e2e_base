@@ -21,7 +21,10 @@ Environment:
   process.exit(2);
 }
 
-async function serveFixtures(root: string, port: number): Promise<{ url: string; close: () => Promise<void> }> {
+async function serveFixtures(
+  root: string,
+  port: number,
+): Promise<{ url: string; close: () => Promise<void> }> {
   const server = createServer(async (req, res) => {
     try {
       const reqPath = req.url === "/" || !req.url ? "/index.html" : req.url;
@@ -29,7 +32,11 @@ async function serveFixtures(root: string, port: number): Promise<{ url: string;
       const data = await readFile(filePath);
       const ext = path.extname(filePath);
       const type =
-        ext === ".html" ? "text/html; charset=utf-8" : ext === ".css" ? "text/css" : "application/octet-stream";
+        ext === ".html"
+          ? "text/html; charset=utf-8"
+          : ext === ".css"
+            ? "text/css"
+            : "application/octet-stream";
       res.writeHead(200, { "Content-Type": type });
       res.end(data);
     } catch {
@@ -120,7 +127,9 @@ async function main(argv: string[]): Promise<void> {
     console.log(`Report: ${reportPath}`);
     for (const step of result.steps) {
       const strategy = step.binding?.strategy ?? "-";
-      console.log(`  - ${step.status} [${strategy}] ${step.stepId}${step.errorMessage ? ` :: ${step.errorMessage}` : ""}`);
+      console.log(
+        `  - ${step.status} [${strategy}] ${step.stepId}${step.errorMessage ? ` :: ${step.errorMessage}` : ""}`,
+      );
     }
 
     if (result.status !== "passed") process.exitCode = 1;
