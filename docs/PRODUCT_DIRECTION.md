@@ -155,6 +155,8 @@ Git に固定した Playbook IR を繰り返し実行し、対象アプリケー
 
 Qualification の承認操作や承認記録をプロダクト機能として必須にするかは未決である。Git の PR レビューを認定として利用する方法も候補に含む。
 
+Qualification を実行する環境や、誤った操作が対象システムへ与える影響の管理は、本プロダクトが引き受ける責務としてモデル化しない。開発者・QA が検査可能な環境を用意する利用文脈を前提とし、初回実行のための承認フロー、サンドボックス、接続先制限を Runtime の必須要件にはしない。ホストの Allowlist などを任意の安全機能として追加する余地はあるが、Qualification の成立条件とは分けて扱う。
+
 ## 7. Execution Result、Report、Artifact の役割
 
 すべてを強い意味の「証跡」と呼ばず、役割を分ける。
@@ -296,6 +298,10 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 
 同じ IR を実行すること、同じ Binding を利用すること、同じ Assertion で評価することは別の保証である。反復性という一語でまとめず、何を固定するかを Execution Policy として明示する。
 
+通常の実行では、Binding が前回から変わったことだけを理由に停止しない。再 Resolve した Binding で後続 Step まで実行して Report を完成させ、人間が一連の振る舞いを評価できるようにする。一方で、Binding の変更は見かけ上成功した操作に含まれるデグレや解釈の変化へ気づく手掛かりになるため、Execution Result に機械可読な差分を残し、Review Viewer で目立つ形で知らせる。これは Assertion の失敗とは異なるレビューシグナルとして扱う。
+
+`Pinned` のように明示的なポリシーとして停止を選べる余地は残すが、Binding 変更時の既定動作にはしない。Binding の再利用を既定にするかは、引き続き別の論点である。
+
 ## 11. 現時点での決定事項
 
 1. プロダクトの中心は、AI エージェントが安全かつ検証可能に Web 操作するための実行ランタイムとする
@@ -311,6 +317,8 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 11. Source Map は多対多を許容し、正しい対応だけでなく未マッピングや未実行も表示する
 12. Binding キャッシュと Execution Result の履歴は責務を分ける
 13. Source と生成済み IR の対応が古くなったことを検出できるようにする
+14. Qualification 実行環境の安全性は Runtime の必須責務にせず、接続先制限などは任意機能として分離する
+15. Binding が前回から変わっても既定では実行を継続し、差分を Report 上のレビューシグナルとして可視化する
 
 ## 12. 未決事項
 
@@ -322,13 +330,12 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 - Source Representation と Canonical IR のどちらをリポジトリ上の編集起点にするか
 - Source Digest と Translator 情報を IR 本体、Manifest、別の Provenance データのどこに保存するか
 - Binding の再利用をデフォルトにするか
-- Binding 変更時に警告、失敗、再認定のどれを要求するか
+- Binding 変更を表す Execution Result の形式と、Review Viewer 上の表示方法
 - Execution Policy に含める設定項目
 - Screenshot 以外の Observation をどこまで MVP に含めるか
 - Playwright コードからの Import が保証する範囲
 - Report の保存・共有方法
 - 強い隔離、署名、改ざん検知が必要になる利用境界
-- 未確認の Playbook を初回実行する Qualification の安全境界
 
 ## 13. 今後の設計・実装への示唆
 

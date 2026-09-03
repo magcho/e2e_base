@@ -80,6 +80,6 @@ Semantic Target（例: 「送信ボタン」）を Resolve → 実行 → 証跡
 3. Tool 展開後の Step occurrence と前後 Observation のモデル設計
 4. Source / Plan・Trace / Observation を並べる 3 カラム Review Viewer のプロトタイプ
 5. Qualification と Verification、再認定条件のユースケース検証
-6. Binding の再利用方針と Binding 変更の可視化
+6. Binding の再利用方針と、実行を止めずに Binding 変更を可視化する方法
 
 Binding キャッシュ、ARIA ツリー、AI resolver 評価、並列 Scenario、Playwright Trace Viewer 連携は引き続き候補だが、上記のプロダクトモデルにおける必要性と優先順位を確認してから着手する。
