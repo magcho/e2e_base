@@ -2,7 +2,9 @@
 
 Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 → 報告** を一本のパイプラインとして扱う実行基盤の MVP です。
 
-最重要仮説: 「送信ボタン」のような **Semantic Target** を Resolve し、監査可能な形で実行・証跡を残せるか。
+最重要仮説: 「送信ボタン」のような **Semantic Target** を Resolve し、操作と判断根拠を追跡可能な形でレポートできるか。
+
+プロダクトとしては、AI が自由に目的達成を試みるブラウザエージェントではなく、固定済みの検査手順を制約付きで実行し、人間による確認と反復を支えるランタイムを目指します。
 
 ## 最初に読む順
 
@@ -15,6 +17,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 
 - [開発者オンボーディング](docs/DEVELOPMENT.md)
 - [構想 (VISION)](docs/VISION.md)
+- [プロダクト方針とレビューライフサイクル](docs/PRODUCT_DIRECTION.md)
 - [アーキテクチャ](docs/ARCHITECTURE.md)
 - [ドメインモデル](docs/DOMAIN_MODEL.md)
 - [Playbook DSL](docs/PLAYBOOK_DSL.md)
