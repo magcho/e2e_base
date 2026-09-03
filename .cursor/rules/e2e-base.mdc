@@ -1,0 +1,29 @@
+---
+description: e2e_base の設計原則・作業制約（常時適用）
+alwaysApply: true
+---
+
+# e2e_base プロジェクトルール
+
+## 設計原則
+
+- **Semantic Target → Binding → Trace** を第一級に保つ。解決根拠（strategy / rationale / candidates）を捨てない。
+- **IR を肥大化させない**。新しい型・語彙は `docs/DOMAIN_MODEL.md` と揃えてから入れる。
+- パッケージ境界を守る: `core` は Playwright/OpenAI 非依存、`executor` は Resolution しない、`reporter` は再実行しない。
+
+## やってよい / だめ
+
+- よい: MVP 仮説の検証、テスト、fixtures、薄い DX、resolver 精度、ドキュメント整備
+- だめ: NL→Playbook、Binding DB、クラウド CI ブラウザ、Auth/API Action、Plugin SDK の本格化、境界を壊す依存
+
+## 作業習慣
+
+- コミット・push はユーザー明示時のみ。勝手に作らない。
+- `docs/`・examples・fixtures・コア実装は削除しない（AI/人間のコンテキスト資産）。
+- コメント・ドキュメント・コミットメッセージは日本語。
+- 秘密情報と生成物（`.env`、`reports/`、`dist/`）をコミットしない。
+- 変更は最小限。過剰な抽象化や無関係リファクタをしない。
+
+## 参照
+
+詳細はルートの `AGENTS.md` と `docs/DEVELOPMENT.md`。
