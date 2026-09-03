@@ -1,11 +1,7 @@
 export type NodeId = string;
 
 export type ResolutionStrategy =
-  | "accessible_name_exact"
-  | "role_name"
-  | "ai_assisted"
-  | "explicit_locator"
-  | "heuristic_fallback";
+  "accessible_name_exact" | "role_name" | "ai_assisted" | "explicit_locator" | "heuristic_fallback";
 
 export type LocatorStrategy = "role" | "css" | "text" | "testid";
 
@@ -84,12 +80,7 @@ export type CallStep = {
 
 export type AssertStep = AssertVisibleStep | AssertTextStep;
 
-export type Step =
-  | NavigateStep
-  | ClickStep
-  | TypeStep
-  | AssertStep
-  | CallStep;
+export type Step = NavigateStep | ClickStep | TypeStep | AssertStep | CallStep;
 
 export type ExecutableStep = Exclude<Step, CallStep>;
 

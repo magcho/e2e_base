@@ -54,12 +54,9 @@ export class HeuristicResolver implements TargetResolver {
     const semantic = normalize(input.target.description);
     const candidates = input.pageSnapshot.candidates;
 
-    const nameMatches = candidates.filter(
-      (c) => c.name != null && normalize(c.name) === semantic,
-    );
+    const nameMatches = candidates.filter((c) => c.name != null && normalize(c.name) === semantic);
     // role 付き（操作可能な要素）を優先し、label のみの重複候補を避ける
-    const exactName =
-      nameMatches.find((c) => c.role != null) ?? nameMatches[0];
+    const exactName = nameMatches.find((c) => c.role != null) ?? nameMatches[0];
     if (exactName) {
       return bindingFromCandidate(
         input,
@@ -75,8 +72,7 @@ export class HeuristicResolver implements TargetResolver {
       (c) =>
         c.role != null &&
         c.name != null &&
-        (normalize(`${c.role} ${c.name}`) === semantic ||
-          semantic.includes(normalize(c.name))),
+        (normalize(`${c.role} ${c.name}`) === semantic || semantic.includes(normalize(c.name))),
     );
     if (roleName) {
       return bindingFromCandidate(
@@ -89,9 +85,7 @@ export class HeuristicResolver implements TargetResolver {
       );
     }
 
-    const textHit = candidates.find(
-      (c) => c.text != null && normalize(c.text).includes(semantic),
-    );
+    const textHit = candidates.find((c) => c.text != null && normalize(c.text).includes(semantic));
     if (textHit) {
       return bindingFromCandidate(
         input,

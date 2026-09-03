@@ -1,12 +1,5 @@
 import { childId, stableId } from "./ids.js";
-import type {
-  LocatorStrategy,
-  Playbook,
-  Scenario,
-  Step,
-  Target,
-  Tool,
-} from "./types.js";
+import type { LocatorStrategy, Playbook, Scenario, Step, Target, Tool } from "./types.js";
 
 export class ParseError extends Error {
   constructor(
@@ -149,7 +142,7 @@ function parseStep(content: string, lineNo: number, parentId: string, index: num
   const parts = content.match(/^([A-Z]+)\s*(.*)$/);
   if (!parts) throw new ParseError(`invalid step: ${content}`, lineNo);
   const keyword = parts[1]!;
-  let rest = parts[2]!.trim();
+  const rest = parts[2]!.trim();
 
   switch (keyword) {
     case "NAVIGATE": {

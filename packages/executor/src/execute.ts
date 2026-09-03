@@ -54,12 +54,7 @@ async function collectCandidates(page: Page): Promise<PageSnapshot> {
       return undefined;
     };
 
-    const push = (
-      el: Element,
-      index: number,
-      role?: string | null,
-      name?: string | null,
-    ) => {
+    const push = (el: Element, index: number, role?: string | null, name?: string | null) => {
       const text = normalize(el.textContent)?.slice(0, 80);
       const idAttr = el.id ? `#${el.id}` : undefined;
       const testId = el.getAttribute("data-testid");
@@ -183,14 +178,22 @@ async function evaluateAssertion(
 ): Promise<Evaluation> {
   const loc = locatorFromBinding(page, binding);
   if (step.assertion === "visible") {
-    const visible = await loc.first().isVisible().catch(() => false);
+    const visible = await loc
+      .first()
+      .isVisible()
+      .catch(() => false);
     return {
       assertion: "visible",
       passed: visible,
       message: visible ? "要素は可視" : "要素が可視ではない",
     };
   }
-  const actual = (await loc.first().innerText().catch(() => "")).trim();
+  const actual = (
+    await loc
+      .first()
+      .innerText()
+      .catch(() => "")
+  ).trim();
   const passed = actual.includes(step.expected);
   return {
     assertion: "text",
