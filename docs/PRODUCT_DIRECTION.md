@@ -33,7 +33,7 @@
 
 `e2e_base` は、固定した Playbook の範囲内でのみ実行する。Semantic Target の具体的な要素への解決には一定の柔軟性を持たせるが、宣言されていない Step や経路を実行時に追加して目的達成を試みるものにはしない。
 
-このプロダクトの中核は、Playwright の完全な決定性と自由な AI ブラウザ操作の中間にある、**制約された意味的実行**である。
+このプロダクトの中核は、明示的な Locator による比較的決定的な操作記述と、自由な AI ブラウザ操作の中間にある、**制約された意味的実行**である。
 
 ## 3. システムを二つの機構に分ける
 
@@ -83,6 +83,8 @@ Canonical Playbook IR を入力として、次を行う。
 
 実行時に元の自然言語を再解釈しない。同じ検査を反復するときは、Git に固定された Canonical Playbook IR を直接実行する。
 
+ここでいう Runtime は、Resolution、Execution、Observation、Evaluation を順序付ける論理的な実行境界を指す。現行実装では `@e2e-base/executor` がページ状態を取得して `@e2e-base/resolver` に Resolution を委譲し、その結果を実行している。将来このオーケストレーションを独立パッケージへ分けるかは未決である。
+
 ## 4. Canonical Playbook IR の位置づけ
 
 Canonical Playbook IR は、ランタイムが実行する正本である。`.playbook` テキストは IR そのものではなく、IR を生成または表示する一つの表現として扱う。
@@ -96,6 +98,8 @@ Canonical Playbook IR は、ランタイムが実行する正本である。`.pl
 5. 確認済みの IR を以後の反復実行に利用する
 
 自然言語や Translator のモデル・バージョンが変わっても、コミット済み IR は自動的には変わらない。再翻訳で IR が変わる場合は、変更として確認する。
+
+Source だけが変更され、対応する IR が再生成されない状態も検出できなければならない。そのため、Canonical Playbook IR または付随する Metadata は、少なくとも Source の識別子・Digest と、利用した Translator の識別情報へ関連付ける。これらを IR 本体に持つか別の Manifest に持つかは未決である。
 
 ## 5. 人間による確認は実行を通じて行う
 
@@ -225,6 +229,8 @@ Viewer は対応がある箇所だけでなく、次を強く表示する。
 
 マッピング済み部分だけを表示すると、Translator が入力の一部を欠落させた場合に気づけない。Mapping Coverage は Qualification の重要な確認項目である。
 
+ただし Mapping Coverage は、Source と Plan の関連付けが存在する割合を示す補助指標であり、翻訳の意味的完全性を証明しない。Translator が広い Source Span を不十分な一つの Plan Node に関連付けても、見かけ上の Coverage は満たせる。最終的な妥当性は、人間が Source、Plan、Execution、Observation を照合して判断する。
+
 ## 9. Source Map の概念モデル
 
 Viewer が直接 Source から Screenshot へ結び付けるのではなく、次の連鎖を辿る。
@@ -304,6 +310,7 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 10. 3 カラム Review Viewer を、入力・実行計画・ブラウザ状態を照合する中心 UI の候補とする
 11. Source Map は多対多を許容し、正しい対応だけでなく未マッピングや未実行も表示する
 12. Binding キャッシュと Execution Result の履歴は責務を分ける
+13. Source と生成済み IR の対応が古くなったことを検出できるようにする
 
 ## 12. 未決事項
 
@@ -313,6 +320,7 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 - Playbook DSL を入力と可逆表示の両方にするか、Review View と分離するか
 - Qualification の承認記録をプロダクト内で持つか、Git / PR レビューに委ねるか
 - Source Representation と Canonical IR のどちらをリポジトリ上の編集起点にするか
+- Source Digest と Translator 情報を IR 本体、Manifest、別の Provenance データのどこに保存するか
 - Binding の再利用をデフォルトにするか
 - Binding 変更時に警告、失敗、再認定のどれを要求するか
 - Execution Policy に含める設定項目
@@ -320,6 +328,7 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 - Playwright コードからの Import が保証する範囲
 - Report の保存・共有方法
 - 強い隔離、署名、改ざん検知が必要になる利用境界
+- 未確認の Playbook を初回実行する Qualification の安全境界
 
 ## 13. 今後の設計・実装への示唆
 

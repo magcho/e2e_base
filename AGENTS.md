@@ -46,7 +46,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 1. **Semantic Target / Binding / Trace** を第一級に保つ。操作は Locator に落ちても、解決根拠を捨てない。
 2. **IR を肥大化させない**。新しい概念は `docs/DOMAIN_MODEL.md` と整合させてから型に入れる。
 3. **core は Playwright / OpenAI に依存しない**。副作用のあるページ操作は resolver では行わない。
-4. **パッケージ境界を守る**。executor は Resolution しない。reporter は再実行しない。
+4. **パッケージ境界を守る**。executor は現在のページ状態を Resolver に渡すが、Resolution の判断ロジックを実装しない。reporter は再実行しない。
 
 ## 主要コマンド
 

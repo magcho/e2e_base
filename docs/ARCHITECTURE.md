@@ -36,15 +36,15 @@ CLI (@e2e-base/cli) が上記をオーケストレーションする。
 |------------|------|------------------|
 | `@e2e-base/core` | IR、型、パーサ、ID 生成、実行結果型 | なし（純粋） |
 | `@e2e-base/resolver` | Semantic → Locator Binding | `core` |
-| `@e2e-base/executor` | Playwright による Bound Step 実行 | `core` |
+| `@e2e-base/executor` | ページ状態の取得、Resolver への委譲、Playwright による Step 実行 | `core`, `resolver` |
 | `@e2e-base/reporter` | StepResult → HTML | `core` |
 | `@e2e-base/cli` | エントリ・配線 | 上記すべて |
 
 ### 境界ルール
 
 1. **core は Playwright / OpenAI に依存しない**
-2. **executor は Resolution を行わない**（渡された Binding のみ使う）
-3. **resolver は副作用あるページ操作をしない**（候補収集のための読み取りは可）
+2. **executor は Resolution の判断ロジックを実装しない**（現在のページ状態を渡し、resolver に委譲する）
+3. **resolver は副作用あるページ操作をしない**（executor から渡された候補を評価する）
 4. **reporter は再実行しない**（入力は StepResult / Evidence のみ）
 5. **cli だけが I/O とポリシー（AI キー有無など）を決定する**
 
@@ -54,7 +54,8 @@ CLI (@e2e-base/cli) が上記をオーケストレーションする。
 2. `parsePlaybook` → `Playbook`（Scenario / Tool 定義）
 3. Scenario を選び、ToolCall を展開（非再帰）
 4. 各 Step について:
-   - Target が Semantic なら Resolver で Binding
+   - Executor が現在のページ状態から候補を収集する
+   - Target が Semantic なら Resolver に委譲して Binding を得る
    - BoundStep を Executor に渡す
    - Observation（screenshot 等）を取得
    - Assertion があれば Evaluator で判定 → StepResult

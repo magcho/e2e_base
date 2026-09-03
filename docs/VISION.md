@@ -51,7 +51,7 @@ MVP では **Translation（自然言語→Playbook）を後回し**にし、人�
 
 ## MVP で検証する最重要仮説
 
-> 「送信ボタン」のような Semantic Target を AI（または同等の Resolver）で Resolve し、監査可能な形で実行・証跡を残せるか。
+> 「送信ボタン」のような Semantic Target を AI（または同等の Resolver）で Resolve し、人間が操作と判断根拠を追跡できる形で実行・レポートできるか。
 
 成功条件のイメージ:
 
