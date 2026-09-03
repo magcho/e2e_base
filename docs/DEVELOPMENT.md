@@ -28,7 +28,7 @@ Playwright のブラウザはリポジトリに含まれません。デモ実行
 
 | コマンド | 内容 |
 |----------|------|
-| `pnpm check` | **統合品質ゲート**（typecheck → lint → format:check → test） |
+| `pnpm check` | **統合品質ゲート**（build → typecheck → lint → format:check → test） |
 | `pnpm build` | 全パッケージを `tsc` ビルド |
 | `pnpm test` | Vitest（各パッケージ） |
 | `pnpm typecheck` | 型チェック（`--noEmit`） |
@@ -44,7 +44,7 @@ PR 作成前や大きな変更後は `pnpm check` を通すのが標準フロー
 | タイミング | 何が走るか |
 |------------|------------|
 | `git commit`（pre-commit） | `lint-staged`（staged な TS/JS に ESLint --fix、対象ファイルに Prettier） |
-| `git push`（pre-push） | `pnpm check`（typecheck / lint / format:check / test） |
+| `git push`（pre-push） | `pnpm check`（build / typecheck / lint / format:check / test） |
 | 手動 / CI | 同じく `pnpm check` |
 
 フックを入れ直す場合: `pnpm prepare`（または再 `pnpm install`）。

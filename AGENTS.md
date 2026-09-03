@@ -52,7 +52,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 pnpm install
 pnpm playwright:install   # Chromium（デモ用・初回）
 pnpm build
-pnpm check                # typecheck + lint + format:check + test（必須ゲート）
+pnpm check                # build + typecheck + lint + format:check + test（必須ゲート）
 pnpm demo                 # reports/latest/report.html
 ```
 

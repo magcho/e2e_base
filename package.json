@@ -12,7 +12,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "prepare": "simple-git-hooks",
     "demo": "pnpm build && pnpm --filter @e2e-base/cli exec node ./dist/cli.js run ../../examples/submit-form.playbook --serve-fixtures --out ../../reports/latest",
     "playwright:install": "pnpm --filter @e2e-base/executor exec playwright install chromium"
