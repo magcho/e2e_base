@@ -4,7 +4,9 @@
 
 ## 目的
 
-Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 → 報告** を一本化する実行基盤（MVP）。最重要仮説は、Semantic Target（例: 「送信ボタン」）を Resolve し、監査可能な Binding / Trace 付きで実行・証跡を残せること。
+Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 → 報告** を一本化する実行基盤（MVP）。最重要仮説は、Semantic Target（例: 「送信ボタン」）を Resolve し、人間が操作と判断根拠を追跡できる Binding / Trace 付きレポートを残せること。
+
+技術 MVP 後のプロダクト方針は [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) を参照する。今後は、Translation と Runtime の分離、Git に固定する Canonical Playbook IR、Qualification / Verification、3 カラム Review Viewer を判断の前提とする。ただし、同文書の将来モデルを実装済みとみなしてはならない。
 
 ## パッケージ境界
 
@@ -63,6 +65,7 @@ pnpm demo                 # reports/latest/report.html
 | 読みたいこと | ファイル |
 |--------------|----------|
 | 構想 | [docs/VISION.md](docs/VISION.md) |
+| プロダクト方針・決定・未決事項 | [docs/PRODUCT_DIRECTION.md](docs/PRODUCT_DIRECTION.md) |
 | 境界・シーケンス | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 型・Trace | [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md) |
 | DSL | [docs/PLAYBOOK_DSL.md](docs/PLAYBOOK_DSL.md) |
