@@ -1,0 +1,15 @@
+playbook "submit-form-demo"
+
+# Semantic Target を使った送信フローの最小 Scenario
+tool fill_contact
+  TYPE "名前入力" "magcho"
+  TYPE "メール入力" "magcho@example.com"
+end
+
+scenario "フォーム送信して成功を確認"
+  NAVIGATE "http://127.0.0.1:4173/"
+  CALL fill_contact
+  CLICK "送信ボタン"
+  ASSERT visible "成功メッセージ"
+  ASSERT text "成功メッセージ" "送信しました"
+end

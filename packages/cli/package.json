@@ -1,0 +1,22 @@
+{
+  "name": "@e2e-base/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "e2e-base": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "start": "node ./dist/cli.js"
+  },
+  "dependencies": {
+    "@e2e-base/core": "workspace:*",
+    "@e2e-base/executor": "workspace:*",
+    "@e2e-base/reporter": "workspace:*",
+    "@e2e-base/resolver": "workspace:*"
+  }
+}
