@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>お出かけスポット天気（fixture）</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 1rem;
+        line-height: 1.5;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      input {
+        padding: 0.4rem;
+        width: 16rem;
+      }
+      button {
+        margin-left: 0.5rem;
+        padding: 0.4rem 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>お出かけスポット天気</h1>
+    <form id="search-form" action="./search-tocho.html" method="get">
+      <label for="keyword">施設名を入力</label>
+      <input id="keyword" name="keyword" type="text" placeholder="施設名を入力" />
+      <button type="submit" title="検索">検索</button>
+    </form>
+    <script>
+      document.getElementById("search-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var value = document.getElementById("keyword").value.trim();
+        if (value === "都庁" || value === "東京都庁舎") {
+          location.href = "./search-tocho.html";
+          return;
+        }
+        location.href = "./search-empty.html";
+      });
+    </script>
+  </body>
+</html>
