@@ -74,6 +74,9 @@ pnpm demo                 # reports/latest/report.html
 | Done / 非目標 | [docs/MVP_PLAN.md](docs/MVP_PLAN.md) |
 | タスク・検証証拠 | [docs/TASKS.md](docs/TASKS.md) |
 | セットアップ手順 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+| 検査手順の提出（エージェント用） | [skills/e2e-playbook/SKILL.md](skills/e2e-playbook/SKILL.md) |
+
+アプリ実装後に再実行可能な `.playbook` を提出するときは、NL→IR Translator ではなく **[e2e-playbook Skill](skills/e2e-playbook/SKILL.md)** に従う。形式チェックは既存パーサ、意味確認は Runtime + Report（Qualification）とする。
 
 ## エージェント作業ルール
 
@@ -89,3 +92,4 @@ pnpm demo                 # reports/latest/report.html
 - `examples/submit-form.playbook` — デモ用 Playbook
 - `fixtures/` — ローカル静的 HTML（`--serve-fixtures`）
 - `docs/` — 設計・計画一式
+- `skills/e2e-playbook/` — エージェントが Playbook を提出するための Skill
