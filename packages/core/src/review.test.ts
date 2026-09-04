@@ -158,8 +158,8 @@ describe("summarizeReviewAttention", () => {
     });
     expect(attention.executionLabel).toBe("passed");
     expect(attention.needsReview).toBe(true);
-    expect(attention.reviewLabel).toContain("Binding変更 4");
-    expect(attention.reviewLabel).toContain("未マッピング Source 1");
+    expect(attention.reviewLabel).toContain("Binding差分 4");
+    expect(attention.reviewLabel).toContain("未マッピング（意図） 1");
   });
 
   it("needsReview is false when there are no signals", () => {
@@ -199,7 +199,7 @@ describe("review judgment progress", () => {
     expect(summarizeSpanReviewProgress(spanIds, decisions).judgmentLabel).toBe("未完了");
     expect(
       summarizeSpanReviewProgress(spanIds, decisions, { scenarioCompleted: true }).judgmentLabel,
-    ).toBe("レビュー済み");
+    ).toBe("完了");
   });
 
   it("classifies span review item status including missing mapping", () => {

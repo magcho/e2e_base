@@ -63,8 +63,8 @@ function buildInlineSourceHtml(
 }
 
 /**
- * 判断作業向け 3 カラム Review 画面。
- * 動詞: 選ぶ → 照合する → 判断する → 完了する
+ * レビュー作業向け 3 カラム画面。
+ * 動詞: 選ぶ → 照合する → 判定する → 完了する
  */
 export async function writeReviewHtmlReport(options: RenderReviewReportOptions): Promise<string> {
   const { bundle, outputPath, playbookPath, compareRuns } = options;
@@ -87,8 +87,8 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
   const reviewMode = bundle.reviewMode ?? "qualification";
   const modeHint =
     reviewMode === "verification"
-      ? "再実行 Verification：前回確認した意味と振る舞いが維持されているかを、差分のある検査意図から確認します。"
-      : "初回 Qualification：この解釈を今後の基準にしてよいかを、すべての検査意図を順に確認します。";
+      ? "再実行 Verification：前回レビューした意味と振る舞いが維持されているかを、差分のある検査意図からレビューします。"
+      : "初回 Qualification：この解釈を今後の基準にしてよいかを、すべての検査意図を順にレビューします。";
 
   const spanToPlans = new Map<string, string[]>();
   const planToSpans = new Map<string, string[]>();
@@ -480,18 +480,18 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     <div class="status-row">
       <div class="pill ${result.status === "passed" ? "ok" : "danger"}">
         <span class="k">実行結果</span>
-        <span class="v">${escapeHtml(attention.executionLabel)}</span>
+        <span class="v">${result.status === "passed" ? "合格" : "不合格"}</span>
       </div>
       <div class="pill" id="progress-pill">
         <span class="k">レビュー進捗</span>
-        <span class="v" id="progress-value">0 / ${sourceSpans.length}項目を確認済み</span>
+        <span class="v" id="progress-value">0 / ${sourceSpans.length} 件レビュー済</span>
       </div>
       <div class="pill" id="judgment-pill">
-        <span class="k">レビュー判断</span>
+        <span class="k">レビュー判定</span>
         <span class="v" id="judgment-value">未完了</span>
       </div>
       <div class="pill ${attention.needsReview ? "warn" : "ok"}">
-        <span class="k">注意シグナル</span>
+        <span class="k">要確認</span>
         <span class="v">${escapeHtml(attention.reviewLabel)}</span>
       </div>
     </div>
@@ -503,27 +503,27 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
   </header>
   <div class="layout">
     <section class="col" id="col-intent">
-      <h2>検査したかったこと</h2>
+      <h2>検査意図</h2>
       <div class="source-doc">${inlineSource}</div>
       <div class="judge-panel">
-        <h3>この検査意図の判断</h3>
+        <h3>この検査意図の判定</h3>
         <div class="judge-actions">
-          <button type="button" data-verdict="as_intended">意図どおり</button>
-          <button type="button" data-verdict="needs_fix">要修正</button>
-          <button type="button" data-verdict="deferred">判断保留</button>
+          <button type="button" data-verdict="as_intended">適合</button>
+          <button type="button" data-verdict="needs_fix">不適合</button>
+          <button type="button" data-verdict="deferred">保留</button>
         </div>
         <textarea class="comment-box" id="comment-box" placeholder="コメント（任意）"></textarea>
-        <button type="button" class="complete-btn" id="complete-btn" disabled>この実行をレビュー済みにする</button>
-        <p class="dim-note" id="complete-hint">すべての検査意図を判断すると完了できます。</p>
+        <button type="button" class="complete-btn" id="complete-btn" disabled>レビューを完了する</button>
+        <p class="dim-note" id="complete-hint">すべての検査意図を判定すると完了できます。</p>
       </div>
     </section>
     <section class="col" id="col-ops">
-      <h2>実際に行った操作</h2>
-      <div class="ops-panel" id="ops-panel"><p class="empty">検査意図を選ぶと、対応する操作だけを表示します。</p></div>
+      <h2>実行手順</h2>
+      <div class="ops-panel" id="ops-panel"><p class="empty">検査意図を選ぶと、対応する実行手順だけを表示します。</p></div>
     </section>
     <section class="col" id="col-obs">
-      <h2>ブラウザで起きたこと</h2>
-      <div class="obs-panel" id="obs-panel"><p class="empty">操作を選ぶと、証拠となる画面状態を大きく表示します。</p></div>
+      <h2>証跡</h2>
+      <div class="obs-panel" id="obs-panel"><p class="empty">実行手順を選ぶと、証跡を大きく表示します。</p></div>
     </section>
   </div>
   <script type="application/json" id="review-data">${JSON.stringify({
@@ -573,10 +573,10 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           .replaceAll('"', "&quot;");
       }
       function statusLabel(kind) {
-        if (kind === "confirmed") return "確認済み";
-        if (kind === "reviewing") return "確認中";
-        if (kind === "missing") return "欠落";
-        return "未確認";
+        if (kind === "confirmed") return "レビュー済";
+        if (kind === "reviewing") return "レビュー中";
+        if (kind === "missing") return "未マッピング";
+        return "未レビュー";
       }
       function classifySpan(span) {
         if (span.missing) return "missing";
@@ -589,18 +589,18 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         const decided = data.spans.filter((s) => state.decisions[s.id] && state.decisions[s.id].verdict).length;
         const allDecided = decided === total && total > 0;
         document.getElementById("progress-value").textContent =
-          decided + " / " + total + "項目を確認済み";
-        const judgment = allDecided && state.scenarioCompleted ? "レビュー済み" : "未完了";
+          decided + " / " + total + " 件レビュー済";
+        const judgment = allDecided && state.scenarioCompleted ? "完了" : "未完了";
         document.getElementById("judgment-value").textContent = judgment;
         const jp = document.getElementById("judgment-pill");
-        jp.classList.toggle("ok", judgment === "レビュー済み");
+        jp.classList.toggle("ok", judgment === "完了");
         const btn = document.getElementById("complete-btn");
         btn.disabled = !allDecided || state.scenarioCompleted;
         document.getElementById("complete-hint").textContent = state.scenarioCompleted
-          ? "この実行はレビュー済みです。"
+          ? "この実行のレビューは完了しています。"
           : allDecided
-            ? "判断が揃いました。レビュー済みにできます。"
-            : "すべての検査意図を判断すると完了できます。";
+            ? "判定が揃いました。レビューを完了できます。"
+            : "すべての検査意図を判定すると完了できます。";
       }
       function refreshIntentStatuses() {
         data.spans.forEach((span) => {
@@ -633,7 +633,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       function renderOps() {
         const panel = document.getElementById("ops-panel");
         if (!selectedSpanId) {
-          panel.innerHTML = '<p class="empty">検査意図を選ぶと、対応する操作だけを表示します。</p>';
+          panel.innerHTML = '<p class="empty">検査意図を選ぶと、対応する実行手順だけを表示します。</p>';
           return;
         }
         const span = spansById[selectedSpanId];
@@ -642,14 +642,14 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           panel.innerHTML =
             '<h3 class="ops-title">' +
             escapeHtml(span.label) +
-            '</h3><p class="empty">この検査意図に対応する操作がありません（欠落）。意図が Plan に落ちていない可能性があります。</p>';
+            '</h3><p class="empty">この検査意図に対応する実行手順がありません（未マッピング）。</p>';
           return;
         }
         if (related.length === 0) {
           panel.innerHTML =
             '<h3 class="ops-title">' +
             escapeHtml(span.label) +
-            '</h3><p class="empty">対応する実行はありません。</p>';
+            '</h3><p class="empty">対応する実行手順はありません。</p>';
           return;
         }
         const items = related
@@ -658,12 +658,12 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
             const selected = selectedStepId === id;
             const st =
               step.status === "passed"
-                ? '<span class="op-status ok">成功</span>'
+                ? '<span class="op-status ok">合格</span>'
                 : step.status === "failed" || step.status === "error"
-                  ? '<span class="op-status bad">失敗</span>'
+                  ? '<span class="op-status bad">不合格</span>'
                   : '<span class="op-status skip">未実行</span>';
             const attn = step.bindingChange
-              ? '<div class="attn">⚠ 注意：前回とは異なる方法で対象を特定</div>'
+              ? '<div class="attn">要確認: Binding差分</div>'
               : "";
             return (
               '<button type="button" class="op-item' +
@@ -686,7 +686,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           escapeHtml(span.label) +
           '</h3><div class="op-list">' +
           items +
-          '</div><p class="dim-note">関係しない操作は畳んでいます。詳細 ID は証拠側で確認できます。</p>';
+          '</div><p class="dim-note">関係しない実行手順は畳んでいます。内部 ID は証跡の詳細で確認できます。</p>';
         panel.querySelectorAll(".op-item").forEach((el) => {
           el.addEventListener("click", () => {
             selectedStepId = el.getAttribute("data-step-id");
@@ -698,7 +698,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       function renderObs() {
         const panel = document.getElementById("obs-panel");
         if (!selectedStepId) {
-          panel.innerHTML = '<p class="empty">操作を選ぶと、証拠となる画面状態を大きく表示します。</p>';
+          panel.innerHTML = '<p class="empty">実行手順を選ぶと、証跡を大きく表示します。</p>';
           return;
         }
         const step = stepsById[selectedStepId];
@@ -712,24 +712,24 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           '<div class="phase-tabs">' +
           '<button type="button" data-phase="before" class="' +
           (phase === "before" ? "active" : "") +
-          '">Before</button>' +
+          '">実行前</button>' +
           '<button type="button" data-phase="after" class="' +
           (phase === "after" ? "active" : "") +
-          '">After / Changes</button></div>';
+          '">実行後</button></div>';
         let assertHtml = "";
         if (step.evaluation) {
           assertHtml =
             '<div class="assert-box ' +
             (step.evaluation.passed ? "" : "failed") +
-            '"><strong>Assertion</strong> ' +
-            (step.evaluation.passed ? "成功" : "失敗") +
+            '"><strong>アサーション</strong> ' +
+            (step.evaluation.passed ? "合格" : "不合格") +
             "<div>" +
             escapeHtml(step.evaluation.message) +
             "</div>" +
             (step.evaluation.expected || step.evaluation.actual
-              ? '<div class="assert-grid"><span class="k">Expected</span><code>' +
+              ? '<div class="assert-grid"><span class="k">期待値</span><code>' +
                 escapeHtml(step.evaluation.expected) +
-                '</code><span class="k">Actual</span><code>' +
+                '</code><span class="k">実績値</span><code>' +
                 escapeHtml(step.evaluation.actual) +
                 "</code></div>"
               : "") +
@@ -738,7 +738,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         let attnHtml = "";
         if (step.bindingChange) {
           attnHtml =
-            '<button type="button" class="attn" id="attn-toggle">⚠ 注意：前回とは異なる方法で対象を特定しました（詳細）</button>' +
+            '<button type="button" class="attn" id="attn-toggle">要確認: Binding差分（詳細）</button>' +
             '<div class="attn-details" id="attn-details" hidden>' +
             "<div>" +
             escapeHtml(step.bindingChange.reason) +
@@ -755,7 +755,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
             "<div style='margin-top:0.35rem'><strong>今回の一致理由</strong><br/>" +
             escapeHtml(step.bindingChange.currentRationale || "") +
             "</div>" +
-            "<div style='margin-top:0.35rem;color:#5b6b7c'>要素サムネイル比較は今後の拡張です。いまは Locator と一致理由で「同じ意味の要素か」を判断してください。</div>" +
+            "<div style='margin-top:0.35rem;color:#5b6b7c'>要素サムネイル比較は今後の拡張です。いまは Locator と一致理由で同一意味の要素かを判定してください。</div>" +
             "</div>";
         }
         const shot =

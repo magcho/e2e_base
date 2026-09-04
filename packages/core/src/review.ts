@@ -147,9 +147,9 @@ export function summarizeReviewAttention(input: {
   unexecutedPlanCount: number;
 }): ReviewAttentionSummary {
   const parts: string[] = [];
-  if (input.bindingChangeCount > 0) parts.push(`Binding変更 ${input.bindingChangeCount}`);
-  if (input.unmappedSpanCount > 0) parts.push(`未マッピング Source ${input.unmappedSpanCount}`);
-  if (input.unmappedPlanCount > 0) parts.push(`未マッピング Plan ${input.unmappedPlanCount}`);
+  if (input.bindingChangeCount > 0) parts.push(`Binding差分 ${input.bindingChangeCount}`);
+  if (input.unmappedSpanCount > 0) parts.push(`未マッピング（意図） ${input.unmappedSpanCount}`);
+  if (input.unmappedPlanCount > 0) parts.push(`未マッピング（手順） ${input.unmappedPlanCount}`);
   if (input.unexecutedPlanCount > 0) parts.push(`未実行 ${input.unexecutedPlanCount}`);
   return {
     executionLabel: input.scenarioStatus,
@@ -174,10 +174,10 @@ export type SpanReviewProgress = {
   decidedCount: number;
   totalCount: number;
   allDecided: boolean;
-  judgmentLabel: "未完了" | "レビュー済み";
+  judgmentLabel: "未完了" | "完了";
 };
 
-/** レビュー進捗（実行機械の passed とは独立） */
+/** レビュー進捗（実行機械の合格／不合格とは独立） */
 export function summarizeSpanReviewProgress(
   spanIds: string[],
   decisions: Record<string, SpanReviewDecision>,
@@ -185,7 +185,7 @@ export function summarizeSpanReviewProgress(
 ): SpanReviewProgress {
   const decidedCount = spanIds.filter((id) => decisions[id]?.verdict != null).length;
   const allDecided = spanIds.length > 0 && decidedCount === spanIds.length;
-  const judgmentLabel = allDecided && options?.scenarioCompleted ? "レビュー済み" : "未完了";
+  const judgmentLabel = allDecided && options?.scenarioCompleted ? "完了" : "未完了";
   return { decidedCount, totalCount: spanIds.length, allDecided, judgmentLabel };
 }
 
