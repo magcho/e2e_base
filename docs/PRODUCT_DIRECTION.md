@@ -320,7 +320,18 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 14. Qualification 実行環境の安全性は Runtime の必須責務にせず、接続先制限などは任意機能として分離する
 15. Binding が前回から変わっても既定では実行を継続し、差分を Report 上のレビューシグナルとして可視化する
 
-## 12. 未決事項
+## 12. Translation の暫定アプローチ（Skill 先行）
+
+本格的な NL → Canonical Playbook IR Translator は後回しにする。当面の代替は次のとおり。
+
+1. **エージェント用 Skill**（[skills/e2e-playbook/SKILL.md](../skills/e2e-playbook/SKILL.md)）が、再実行可能な `.playbook` の書き方・禁止事項・提出手順を教える
+2. **形式チェック**は新規 Validator を増やさず、既存の `parsePlaybook`（`e2e-base run` 入口）成功をもって足りるとする
+3. **意味的妥当性**は従来どおり Runtime 実行と Report による Qualification で確認する
+4. Translation を Runtime 実行ループに入れない（反復実行時に NL を再解釈しない、という決定は維持）
+
+将来 Translator を独立機構として追加する場合も、出力は同じ Playbook / IR 制約を通り、Runtime 境界は変えない。
+
+## 13. 未決事項
 
 次は議論で方向性が出たものの、まだ仕様として確定していない。
 
@@ -337,7 +348,7 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 - Report の保存・共有方法
 - 強い隔離、署名、改ざん検知が必要になる利用境界
 
-## 13. 今後の設計・実装への示唆
+## 14. 今後の設計・実装への示唆
 
 次の実装へ進む前に、現行型との差分を明示したうえで以下を設計する。
 

@@ -24,6 +24,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 - [MVP 計画](docs/MVP_PLAN.md)
 - [タスクボード](docs/TASKS.md)
 - [AGENTS.md](AGENTS.md) — AI 向けガイド
+- [e2e-playbook Skill](skills/e2e-playbook/SKILL.md) — エージェントが検査用 `.playbook` を提出するとき
 
 ## パッケージ構成
 
