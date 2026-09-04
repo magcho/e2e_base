@@ -109,6 +109,7 @@ pnpm demo:review
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — 境界
 - [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — 型
 - [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) — プロダクト方針
+- [REVIEW_VIEWER_SPRINT.md](./REVIEW_VIEWER_SPRINT.md) — Review Viewer 縦切りの仕様判断
 - [PLAYBOOK_DSL.md](./PLAYBOOK_DSL.md) — DSL
 - [MVP_PLAN.md](./MVP_PLAN.md) — Done / 非目標
 - [TASKS.md](./TASKS.md) — タスクボード
