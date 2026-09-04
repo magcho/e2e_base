@@ -19,6 +19,7 @@
 | 未マッピング Plan | Playbook 外の合成ノード | **ReviewBundle に合成 PlanNode を 1 つ追加** | Translator 欠落の見え方をデモするため。IR 本体には入れない |
 | 既存 HTML Report | 削除 / 併存 | **併存** | `writeHtmlReport` は互換、`writeReviewHtmlReport` が 3 カラム |
 | Viewer 改善（照合 UX） | 完成版デザイン / 照合に効く最小改善 | **照合に効く最小改善** | 実行成否と要レビュー分離、Binding 差分の可読化、Before/After 並置、Plan/occurrence 階層、Source 全文、Run 切替リンク |
+| Viewer 改善（判断作業） | データ閲覧のまま / 判断フローへ組み直し | **判断フローへ組み直し** | 問い明示、実行結果≠レビュー判断、Span＝レビュー項目、意図どおり/要修正の記録、Observation を証拠の主役に |
 
 ## Viewer 照合 UX（追記）
 
@@ -30,6 +31,23 @@
 - 中央カラムは Plan（宣言）と Execution（occurrence）を階層表示し、Source/occurrence 件数を明示
 - Source は全文のインライン Span とカード一覧を併記
 - classic / alt Run をチップで切替（並置ビューではなくリンク）
+
+## Viewer 判断作業 UI（追記）
+
+画面の基本動詞を「見る」から **選ぶ → 照合する → 判断する → 完了する** へ変えた。
+
+- 上部にレビューの問いを明示
+- 状態を分離: 実行結果 / レビュー進捗 / レビュー判断 / 注意シグナル
+- Source Span をレビュー項目（確認済み・確認中・未確認・欠落）として扱う
+- カラム名を人間語に: 検査したかったこと / 実際に行った操作 / ブラウザで起きたこと
+- 選択中の検査意図に対応する操作だけを中央に表示
+- 色を分離: 青＝選択、薄い青＝対応、オレンジ＝注意、赤＝失敗・欠落
+- Observation を大きくし、Before/After 切替・拡大、Assertion を前面に
+- Binding 変更は折りたたみの注意シグナル
+- 各意図に「意図どおり / 要修正 / 判断保留」＋コメント、全項目後にレビュー完了（localStorage）
+- Qualification / Verification で初期の問い文を切替
+
+未実装（次）: Binding 変更時の前回／今回要素サムネイル比較、Qualification 承認ワークフロー本体
 
 ## 非目標（意図的にやらなかったこと）
 

@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   annotateBindingChanges,
+  expandScenarioOccurrences,
+  humanizeStepAction,
   parsePlaybook,
   planNodesFromScenarioSteps,
   type Binding,
@@ -95,6 +97,9 @@ function buildReviewBundle(input: {
   scenarioSteps: Step[];
   result: ReviewBundle["result"];
   runLabel: string;
+  playbook: Parameters<typeof expandScenarioOccurrences>[0];
+  scenario: Parameters<typeof expandScenarioOccurrences>[1];
+  reviewMode: "qualification" | "verification";
 }): ReviewBundle {
   const sourceDocument: SourceDocument = {
     id: input.sourceMap.sourceDocumentId,
@@ -126,6 +131,10 @@ function buildReviewBundle(input: {
     }
     links.push({ sourceSpanId: link.sourceSpanId, planNodeId: step.id });
   }
+  const actionLabels: Record<string, string> = {};
+  for (const occ of expandScenarioOccurrences(input.playbook, input.scenario)) {
+    actionLabels[occ.occurrencePath] = humanizeStepAction(occ.step);
+  }
   return {
     sourceDocument,
     sourceSpans,
@@ -133,6 +142,8 @@ function buildReviewBundle(input: {
     planNodes,
     result: input.result,
     runLabel: input.runLabel,
+    actionLabels,
+    reviewMode: input.reviewMode,
   };
 }
 
@@ -285,6 +296,9 @@ async function runReviewDemo(options: { outDir: string; headed: boolean }): Prom
       scenarioSteps: scenario.steps,
       result: classicResult,
       runLabel: "fixture-classic",
+      playbook,
+      scenario,
+      reviewMode: "qualification",
     });
     const altBundle = buildReviewBundle({
       sourceContent,
@@ -292,6 +306,9 @@ async function runReviewDemo(options: { outDir: string; headed: boolean }): Prom
       scenarioSteps: altScenario.steps,
       result: altResult,
       runLabel: "fixture-alt（Binding 変更シグナル付き）",
+      playbook: altPlaybook,
+      scenario: altScenario,
+      reviewMode: "verification",
     });
 
     const classicCompare = [

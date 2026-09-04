@@ -54,6 +54,10 @@ export type ReviewBundle = {
   result: ScenarioResult;
   /** 画面上の実行ラベル（例: fixture-classic / fixture-alt） */
   runLabel?: string;
+  /** occurrencePath → 人間向け操作文 */
+  actionLabels?: Record<string, string>;
+  /** Qualification（初回） / Verification（再実行差分起点） */
+  reviewMode?: "qualification" | "verification";
 };
 
 export type LocatorKey = string;
@@ -152,6 +156,77 @@ export function summarizeReviewAttention(input: {
     needsReview: parts.length > 0,
     reviewLabel: parts.length > 0 ? parts.join(" · ") : "なし",
   };
+}
+
+/** 人間が記録する検査意図ごとの判断 */
+export type SpanReviewVerdict = "as_intended" | "needs_fix" | "deferred";
+
+export type SpanReviewDecision = {
+  spanId: string;
+  verdict: SpanReviewVerdict;
+  comment?: string;
+  decidedAt?: string;
+};
+
+export type SpanReviewItemStatus = "confirmed" | "reviewing" | "pending" | "missing";
+
+export type SpanReviewProgress = {
+  decidedCount: number;
+  totalCount: number;
+  allDecided: boolean;
+  judgmentLabel: "未完了" | "レビュー済み";
+};
+
+/** レビュー進捗（実行機械の passed とは独立） */
+export function summarizeSpanReviewProgress(
+  spanIds: string[],
+  decisions: Record<string, SpanReviewDecision>,
+  options?: { scenarioCompleted?: boolean },
+): SpanReviewProgress {
+  const decidedCount = spanIds.filter((id) => decisions[id]?.verdict != null).length;
+  const allDecided = spanIds.length > 0 && decidedCount === spanIds.length;
+  const judgmentLabel = allDecided && options?.scenarioCompleted ? "レビュー済み" : "未完了";
+  return { decidedCount, totalCount: spanIds.length, allDecided, judgmentLabel };
+}
+
+/** Source Span をレビュー項目として分類する */
+export function classifySpanReviewItem(input: {
+  spanId: string;
+  linkedPlanCount: number;
+  decision?: SpanReviewDecision;
+  selectedSpanId: string | null;
+}): SpanReviewItemStatus {
+  if (input.linkedPlanCount === 0) return "missing";
+  if (input.decision?.verdict) return "confirmed";
+  if (input.selectedSpanId === input.spanId) return "reviewing";
+  return "pending";
+}
+
+/** 実行 Step を人間向けの操作文にする */
+export function humanizeStepAction(step: Step): string {
+  switch (step.type) {
+    case "NAVIGATE":
+      return `ページを開く`;
+    case "CLICK":
+      return `「${targetDescription(step.target)}」をクリック`;
+    case "TYPE":
+      return `「${targetDescription(step.target)}」に「${step.text}」を入力`;
+    case "ASSERT":
+      return step.assertion === "text"
+        ? `「${targetDescription(step.target)}」に「${step.expected ?? ""}」が表示されることを確認`
+        : `「${targetDescription(step.target)}」が表示されることを確認`;
+    case "CALL":
+      return `ツール ${step.toolName} を実行`;
+    default: {
+      const _exhaustive: never = step;
+      return String(_exhaustive);
+    }
+  }
+}
+
+function targetDescription(target: { kind: string; description?: string; value?: string }): string {
+  if (target.kind === "semantic" && target.description) return target.description;
+  return target.value ?? "対象";
 }
 
 /** Plan Node のうち実行 occurrence が1つも無いものを列挙 */
