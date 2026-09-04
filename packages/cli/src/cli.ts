@@ -294,15 +294,30 @@ async function runReviewDemo(options: { outDir: string; headed: boolean }): Prom
       runLabel: "fixture-alt（Binding 変更シグナル付き）",
     });
 
+    const classicCompare = [
+      { label: "classic", href: "./review.html", active: true },
+      { label: "alt（Binding 差分）", href: "../alt/review.html" },
+    ];
+    const altCompare = [
+      { label: "classic", href: "../classic/review.html" },
+      { label: "alt（Binding 差分）", href: "./review.html", active: true },
+    ];
+    const rootCompare = [
+      { label: "classic", href: "./classic/review.html" },
+      { label: "alt（Binding 差分）", href: "./alt/review.html", active: true },
+    ];
+
     const classicReview = await writeReviewHtmlReport({
       bundle: classicBundle,
       outputPath: path.join(classicDir, "review.html"),
       playbookPath,
+      compareRuns: classicCompare,
     });
     const altReview = await writeReviewHtmlReport({
       bundle: altBundle,
       outputPath: path.join(altDir, "review.html"),
       playbookPath,
+      compareRuns: altCompare,
     });
 
     // 代表 Viewer を latest 直下にも置く（alt = Binding 変更が見える方）
@@ -310,6 +325,7 @@ async function runReviewDemo(options: { outDir: string; headed: boolean }): Prom
       bundle: altBundle,
       outputPath: path.join(outDir, "review.html"),
       playbookPath,
+      compareRuns: rootCompare,
     });
 
     // 機械可読な比較サマリ（reports は gitignore）

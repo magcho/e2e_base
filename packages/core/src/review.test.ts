@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   annotateBindingChanges,
+  describeBindingChange,
   expandScenarioOccurrences,
+  formatLocatorLabel,
   listUnmappedPlanNodeIds,
   listUnmappedSourceSpanIds,
   parsePlaybook,
+  summarizeReviewAttention,
   type Binding,
 } from "../src/index.js";
 
@@ -97,5 +100,74 @@ describe("mapping coverage helpers", () => {
     const links = [{ sourceSpanId: "a", planNodeId: "p1" }];
     expect(listUnmappedSourceSpanIds(spans, links)).toEqual(["b"]);
     expect(listUnmappedPlanNodeIds(plans, links)).toEqual(["p2"]);
+  });
+});
+
+describe("formatLocatorLabel", () => {
+  it("renders role+name and css locators in human-readable form", () => {
+    expect(formatLocatorLabel({ strategy: "role", value: "textbox", name: "名前入力" })).toBe(
+      'role=textbox name="名前入力"',
+    );
+    expect(formatLocatorLabel({ strategy: "css", value: '[data-testid="名前入力"]' })).toBe(
+      'css=[data-testid="名前入力"]',
+    );
+  });
+});
+
+describe("describeBindingChange", () => {
+  it("summarizes which locator fields changed", () => {
+    const previous: Binding = {
+      id: "bnd_prev",
+      targetId: "tgt",
+      strategy: "accessible_name_exact",
+      locator: { strategy: "role", value: "textbox", name: "名前入力" },
+      confidence: 0.9,
+      rationale: "prev",
+      resolvedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const current: Binding = {
+      ...previous,
+      id: "bnd_curr",
+      locator: { strategy: "css", value: '[data-testid="名前入力"]' },
+      rationale: "curr",
+    };
+    const desc = describeBindingChange({
+      changed: true,
+      previous,
+      current,
+      reason: "同一 Semantic Target が前回と異なる Binding へ Resolve された",
+    });
+    expect(desc.headline).toContain("strategy");
+    expect(desc.previousLabel).toBe('role=textbox name="名前入力"');
+    expect(desc.currentLabel).toBe('css=[data-testid="名前入力"]');
+    expect(desc.changedFields).toEqual(expect.arrayContaining(["strategy", "value", "name"]));
+  });
+});
+
+describe("summarizeReviewAttention", () => {
+  it("separates execution pass from review signals", () => {
+    const attention = summarizeReviewAttention({
+      scenarioStatus: "passed",
+      bindingChangeCount: 4,
+      unmappedSpanCount: 1,
+      unmappedPlanCount: 1,
+      unexecutedPlanCount: 1,
+    });
+    expect(attention.executionLabel).toBe("passed");
+    expect(attention.needsReview).toBe(true);
+    expect(attention.reviewLabel).toContain("Binding変更 4");
+    expect(attention.reviewLabel).toContain("未マッピング Source 1");
+  });
+
+  it("needsReview is false when there are no signals", () => {
+    const attention = summarizeReviewAttention({
+      scenarioStatus: "passed",
+      bindingChangeCount: 0,
+      unmappedSpanCount: 0,
+      unmappedPlanCount: 0,
+      unexecutedPlanCount: 0,
+    });
+    expect(attention.needsReview).toBe(false);
+    expect(attention.reviewLabel).toBe("なし");
   });
 });

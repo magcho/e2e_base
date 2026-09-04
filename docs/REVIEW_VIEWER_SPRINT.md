@@ -18,6 +18,18 @@
 | 失敗後の未実行 | 結果から省略 / skipped で残す | **skipped で残す** | Viewer で未実行を隠さない |
 | 未マッピング Plan | Playbook 外の合成ノード | **ReviewBundle に合成 PlanNode を 1 つ追加** | Translator 欠落の見え方をデモするため。IR 本体には入れない |
 | 既存 HTML Report | 削除 / 併存 | **併存** | `writeHtmlReport` は互換、`writeReviewHtmlReport` が 3 カラム |
+| Viewer 改善（照合 UX） | 完成版デザイン / 照合に効く最小改善 | **照合に効く最小改善** | 実行成否と要レビュー分離、Binding 差分の可読化、Before/After 並置、Plan/occurrence 階層、Source 全文、Run 切替リンク |
+
+## Viewer 照合 UX（追記）
+
+レビュー目的に対する最小改善として、次を入れた。
+
+- ヘッダで **実行 (passed/failed)** と **要レビュー（Binding 変更・未マッピング・未実行）** を分離
+- Binding 変更は JSON ではなく `role=… → css=…` と変化フィールド表
+- Observation は before / after を横並び
+- 中央カラムは Plan（宣言）と Execution（occurrence）を階層表示し、Source/occurrence 件数を明示
+- Source は全文のインライン Span とカード一覧を併記
+- classic / alt Run をチップで切替（並置ビューではなくリンク）
 
 ## 非目標（意図的にやらなかったこと）
 

@@ -1,6 +1,7 @@
 import type {
   Binding,
   BindingChangeSignal,
+  BindingLocator,
   NodeId,
   ScenarioResult,
   Step,
@@ -90,6 +91,67 @@ export function annotateBindingChanges(
     };
     return { ...step, bindingChange };
   });
+}
+
+/** Locator をレビュー用の短いラベルにする */
+export function formatLocatorLabel(locator: BindingLocator): string {
+  if (locator.strategy === "role" && locator.name) {
+    return `role=${locator.value} name="${locator.name}"`;
+  }
+  if (locator.name) {
+    return `${locator.strategy}=${locator.value} name="${locator.name}"`;
+  }
+  return `${locator.strategy}=${locator.value}`;
+}
+
+export type BindingChangeDescription = {
+  headline: string;
+  previousLabel: string;
+  currentLabel: string;
+  changedFields: Array<"strategy" | "value" | "name">;
+};
+
+/** Binding 変更を人間が読める差分に要約する */
+export function describeBindingChange(change: BindingChangeSignal): BindingChangeDescription {
+  const prev = change.previous.locator;
+  const curr = change.current.locator;
+  const changedFields: Array<"strategy" | "value" | "name"> = [];
+  if (prev.strategy !== curr.strategy) changedFields.push("strategy");
+  if (prev.value !== curr.value) changedFields.push("value");
+  if ((prev.name ?? "") !== (curr.name ?? "")) changedFields.push("name");
+  const fieldLabel = changedFields.length > 0 ? changedFields.join(" / ") : "locator";
+  return {
+    headline: `Locator の ${fieldLabel} が変化`,
+    previousLabel: formatLocatorLabel(prev),
+    currentLabel: formatLocatorLabel(curr),
+    changedFields,
+  };
+}
+
+export type ReviewAttentionSummary = {
+  executionLabel: "passed" | "failed";
+  needsReview: boolean;
+  reviewLabel: string;
+};
+
+/** 実行成否とレビューシグナルを分けて要約する */
+export function summarizeReviewAttention(input: {
+  scenarioStatus: "passed" | "failed";
+  bindingChangeCount: number;
+  unmappedSpanCount: number;
+  unmappedPlanCount: number;
+  unexecutedPlanCount: number;
+}): ReviewAttentionSummary {
+  const parts: string[] = [];
+  if (input.bindingChangeCount > 0) parts.push(`Binding変更 ${input.bindingChangeCount}`);
+  if (input.unmappedSpanCount > 0) parts.push(`未マッピング Source ${input.unmappedSpanCount}`);
+  if (input.unmappedPlanCount > 0) parts.push(`未マッピング Plan ${input.unmappedPlanCount}`);
+  if (input.unexecutedPlanCount > 0) parts.push(`未実行 ${input.unexecutedPlanCount}`);
+  return {
+    executionLabel: input.scenarioStatus,
+    needsReview: parts.length > 0,
+    reviewLabel: parts.length > 0 ? parts.join(" · ") : "なし",
+  };
 }
 
 /** Plan Node のうち実行 occurrence が1つも無いものを列挙 */
