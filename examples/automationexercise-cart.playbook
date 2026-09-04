@@ -1,0 +1,44 @@
+playbook "automationexercise-cart"
+
+# Source（検査意図）
+# 目的:
+#   Automation Exercise で、Men の Tshirts カテゴリから Rs. 400 の商品をカートに入れ、
+#   続けて Men の Jeans カテゴリから Rs. 1200 の商品をカートに入れ、
+#   カート画面で 2 商品が入っていることを確認できること。
+# 手順:
+#   1. https://www.automationexercise.com/ を開く
+#   2. カテゴリ「Men」を開き、「Tshirts」を表示する
+#   3. Rs. 400 の Men Tshirt をカートに入れる
+#   4. 買い物を続ける
+#   5. カテゴリ「Men」を開き、「Jeans」を表示する
+#   6. Rs. 1200 の Regular Fit Straight Jeans をカートに入れる
+#   7. カート画面を開く
+# 合格条件:
+#   - カートに Men Tshirt（Rs. 400）がある
+#   - カートに Regular Fit Straight Jeans（Rs. 1200）がある
+#   - カート上で上記 2 商品を確認できる
+# 補足:
+#   - 一覧上の「Add to cart」「View Product」は同名が複数あるため、
+#     商品詳細へ進んでから追加する（Tshirts は先頭の View Product = Rs. 400、
+#     Jeans の Rs. 1200 はカテゴリ表示後に product_details/35 を開く）
+#   - Continue Shopping 後はアコーディオンが閉じるため、Jeans はカテゴリ URL へ遷移して確認する
+#   - Executor 側: role 名は単語境界付きマッチ（Women≠Men）、照合は大文字小文字を無視
+
+scenario "MenのTshirtsとJeansから2商品をカートに入れられる"
+  NAVIGATE "https://www.automationexercise.com/"
+  CLICK "Men"
+  CLICK "Tshirts"
+  ASSERT visible "Men - Tshirts Products"
+  CLICK "View Product"
+  ASSERT visible "Men Tshirt"
+  CLICK "Add to cart"
+  CLICK "Continue Shopping"
+  NAVIGATE "https://www.automationexercise.com/category_products/6"
+  ASSERT visible "Men - Jeans Products"
+  NAVIGATE "https://www.automationexercise.com/product_details/35"
+  ASSERT visible "Regular Fit Straight Jeans"
+  CLICK "Add to cart"
+  CLICK "View Cart"
+  ASSERT visible "Men Tshirt"
+  ASSERT visible "Regular Fit Straight Jeans"
+end
