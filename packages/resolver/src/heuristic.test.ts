@@ -50,6 +50,22 @@ describe("HeuristicResolver", () => {
     expect(binding!.locator.strategy).toBe("role");
     expect(binding!.locator.value).toBe("button");
   });
+
+  it("matches accessible name case-insensitively", async () => {
+    const resolver = new HeuristicResolver();
+    const binding = await resolver.resolve({
+      target: { id: "tgt_men", kind: "semantic", description: "Men" },
+      pageSnapshot: {
+        candidates: [
+          { id: "c1", role: "link", name: "WOMEN" },
+          { id: "c2", role: "link", name: "MEN", cssHint: 'a[href="#Men"]' },
+        ],
+      },
+    });
+    expect(binding).not.toBeNull();
+    expect(binding!.strategy).toBe("accessible_name_exact");
+    expect(binding!.locator.name).toBe("MEN");
+  });
 });
 
 describe("createDefaultResolver", () => {

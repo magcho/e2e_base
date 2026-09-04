@@ -3,7 +3,7 @@ import type { Binding, PageCandidate } from "@e2e-base/core";
 import type { ResolveInput, TargetResolver } from "./types.js";
 
 function normalize(s: string): string {
-  return s.trim().replace(/\s+/g, " ");
+  return s.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function candidateLabel(c: PageCandidate): string {

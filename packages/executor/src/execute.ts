@@ -91,10 +91,11 @@ async function collectCandidates(page: Page): Promise<PageSnapshot> {
         const name =
           el.getAttribute("aria-label") ||
           associatedLabelText(el) ||
+          // text-transform:uppercase の影響を避けるため textContent を優先
+          el.textContent ||
           (el as HTMLElement).innerText ||
           (el as HTMLInputElement).value ||
-          el.getAttribute("placeholder") ||
-          el.textContent;
+          el.getAttribute("placeholder");
         push(el, i++, role, name);
       });
 
@@ -121,17 +122,23 @@ async function collectCandidates(page: Page): Promise<PageSnapshot> {
   return { candidates: unique };
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function locatorFromBinding(page: Page, binding: Binding): Locator {
   const { locator } = binding;
   switch (locator.strategy) {
     case "role":
       return page.getByRole(locator.value as Parameters<Page["getByRole"]>[0], {
-        name: locator.name,
+        // Women への部分一致を避けつつ、アイコン付きラベル（例: " Men"）も許容する
+        name:
+          locator.name != null ? new RegExp(`\\b${escapeRegExp(locator.name)}\\b`, "i") : undefined,
       });
     case "css":
       return page.locator(locator.value);
     case "text":
-      return page.getByText(locator.value);
+      return page.getByText(new RegExp(`^${escapeRegExp(locator.value)}$`, "i"));
     case "testid":
       return page.getByTestId(locator.value);
     default:
