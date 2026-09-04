@@ -11,10 +11,13 @@ playbook "tenki-tocho-weather"
 # 合格条件:
 #   - 「東京都庁舎」の天気ページが表示されている
 #   - 「今日の天気」が画面上で確認できる
-# 注意: ヘッダの〒・住所検索は使わない（お出かけスポットの施設名検索を使う）
+# 注意:
+#   - ヘッダの〒・住所検索は使わない（お出かけスポットの施設名検索を使う）
+#   - 実サイトの /lite/leisure/search は当環境から CloudFront 403 となるため、
+#     Qualification は fixtures/tenki で同等導線を再現して確認する
 
 scenario "ライト版から東京都庁舎の今日の天気を確認できる"
-  NAVIGATE "https://tenki.jp/lite/"
+  NAVIGATE "http://127.0.0.1:4173/tenki/index.html"
   CLICK "お出かけスポット天気"
   TYPE "施設名を入力" "都庁"
   CLICK "検索"
