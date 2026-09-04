@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>e2e_base Fixture Alt — お問い合わせ（別 UI）</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      /* 別 UI: カード型ではなく横並び寄りのレイアウトで構造差を出す */
+      .alt-shell {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2.5rem 1rem;
+      }
+      .alt-shell h1 {
+        font-size: 1.6rem;
+      }
+      .alt-row {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .ghost-submit {
+        display: inline-block;
+        padding: 0.7rem 1.1rem;
+        background: #245b8a;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 0.75rem;
+        cursor: pointer;
+        border: 0;
+        font: inherit;
+      }
+      /* role 無し + data-testid で Binding が css 側へ寄りやすい構造 */
+      [data-testid="送信ボタン"] {
+        display: inline-block;
+      }
+      [contenteditable="true"] {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.65rem 0.75rem;
+        min-height: 2.4rem;
+        background: rgba(255, 255, 255, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="alt-shell">
+      <h1>コンタクト（別 DOM）</h1>
+      <p class="lead">
+        classic fixture とは DOM / accessible tree が異なります。同じ Playbook で Binding
+        差分を観察します。
+      </p>
+
+      <div class="alt-row">
+        <div>
+          <div>氏名</div>
+          <!-- role 無しの contenteditable + aria-label → heuristic は cssHint を採用しやすい -->
+          <div
+            contenteditable="true"
+            data-testid="名前入力"
+            aria-label="名前入力"
+            id="alt-name"
+          ></div>
+        </div>
+        <div>
+          <div>メールアドレス</div>
+          <div
+            contenteditable="true"
+            data-testid="メール入力"
+            aria-label="メール入力"
+            id="alt-email"
+          ></div>
+        </div>
+        <div>
+          <div
+            id="alt-submit"
+            class="ghost-submit"
+            data-testid="送信ボタン"
+            aria-label="送信ボタン"
+            role=""
+          >
+            送る
+          </div>
+        </div>
+      </div>
+
+      <p id="alt-success" data-testid="成功メッセージ" aria-label="成功メッセージ" hidden>
+        送信しました
+      </p>
+    </div>
+    <script>
+      (function () {
+        var submit = document.getElementById("alt-submit");
+        // role="" を除去して role 無しにする（属性が空でも getAttribute は ""）
+        submit.removeAttribute("role");
+        submit.addEventListener("click", function () {
+          var success = document.getElementById("alt-success");
+          success.hidden = false;
+        });
+      })();
+    </script>
+  </body>
+</html>

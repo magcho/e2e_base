@@ -1,0 +1,43 @@
+{
+  "sourceDocumentId": "src_submit_intent",
+  "kind": "natural-language",
+  "label": "検査意図（手書き Source）",
+  "spans": [
+    {
+      "id": "span_open",
+      "start": 0,
+      "end": 13,
+      "label": "フォームを開く"
+    },
+    {
+      "id": "span_fill",
+      "start": 14,
+      "end": 29,
+      "label": "名前とメールを入力して送信"
+    },
+    {
+      "id": "span_assert",
+      "start": 31,
+      "end": 55,
+      "label": "成功メッセージを確認"
+    },
+    {
+      "id": "span_unmapped",
+      "start": 57,
+      "end": 82,
+      "label": "監査ログ確認（未マッピング）"
+    }
+  ],
+  "linksByStepIndex": [
+    { "sourceSpanId": "span_open", "stepIndex": 0 },
+    { "sourceSpanId": "span_fill", "stepIndex": 1 },
+    { "sourceSpanId": "span_fill", "stepIndex": 2 },
+    { "sourceSpanId": "span_assert", "stepIndex": 3 },
+    { "sourceSpanId": "span_assert", "stepIndex": 4 }
+  ],
+  "syntheticUnmappedPlanNode": {
+    "id": "plan_synthetic_unmapped",
+    "label": "（生成のみ）監査ログ ASSERT（Source 未対応）",
+    "stepType": "ASSERT"
+  }
+}

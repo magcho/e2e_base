@@ -35,6 +35,7 @@ Playwright のブラウザはリポジトリに含まれません。デモ実行
 | `pnpm lint` | ESLint |
 | `pnpm format` / `pnpm format:check` | Prettier 整形 / 検査 |
 | `pnpm demo` | fixtures 配信 + サンプル Playbook 実行 → `reports/latest/report.html` |
+| `pnpm demo:review` | classic/alt 2 fixture で同一 Playbook を実行 → 3 カラム Review Viewer（`reports/review/review.html`） |
 | `pnpm playwright:install` | Chromium インストール |
 
 PR 作成前や大きな変更後は `pnpm check` を通すのが標準フローです。
@@ -72,6 +73,22 @@ GitHub Actions（[`.github/workflows/ci.yml`](../.github/workflows/ci.yml)）が
 2. `reports/latest/report.html` を開く
 3. 各 Step に Resolution strategy・Binding・status・screenshot があることを確認する
 
+### Review Viewer（3 カラム）デモ
+
+同一 Canonical Playbook を UI の異なる 2 fixture（`fixtures/index.html` と `fixtures/alt/`）で実行し、Source / Plan / Observation を照合する。
+
+```bash
+pnpm demo:review
+```
+
+1. `reports/review/review.html` を開く（alt 実行・Binding 変更シグナル付き）
+2. 左の Source Span または中央の Step をクリック／ホバーし、他カラムのハイライトを確認する
+3. 右カラムで before / after（または assertion）Screenshot を切り替える
+4. Binding が変わった Step に「Binding 変更」シグナルが出ていることを確認する（実行は止まらない）
+5. 未マッピング Source・未マッピング Plan・（必要なら）未実行 Step が隠れていないことを確認する
+
+手書き Source と Source Map は `examples/review/`。データ例は `docs/examples/review-viewer-data-example.json`。モデル変更理由は [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) の Review Viewer 節。
+
 `reports/` は生成物のため gitignore 対象です。
 
 ## リモートとの初回同期（注意）
@@ -91,6 +108,7 @@ GitHub Actions（[`.github/workflows/ci.yml`](../.github/workflows/ci.yml)）が
 - [VISION.md](./VISION.md) — 構想
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — 境界
 - [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — 型
+- [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) — プロダクト方針
 - [PLAYBOOK_DSL.md](./PLAYBOOK_DSL.md) — DSL
 - [MVP_PLAN.md](./MVP_PLAN.md) — Done / 非目標
 - [TASKS.md](./TASKS.md) — タスクボード
