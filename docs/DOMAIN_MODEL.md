@@ -152,6 +152,8 @@ type BoundStep = {
 ## Observation / Evaluation / Evidence
 
 ```ts
+type ObservationPhase = "before" | "after" | "assertion" | "error";
+
 type Observation = {
   id: NodeId;
   stepId: NodeId;
@@ -159,6 +161,8 @@ type Observation = {
   screenshotPath?: string;
   visibleTextSample?: string;
   capturedAt: string;
+  /** 未指定時は after 相当（既存デモ互換） */
+  phase?: ObservationPhase;
 };
 
 type Evaluation = {
@@ -169,15 +173,31 @@ type Evaluation = {
   actual?: string;
 };
 
+type BindingChangeSignal = {
+  changed: true;
+  previous: Binding;
+  current: Binding;
+  reason: string;
+};
+
 type StepResult = {
   id: NodeId;
   stepId: NodeId;
   status: "passed" | "failed" | "skipped" | "error";
   binding?: Binding;
+  /** 互換用の代表 Observation（通常 after / assertion / error） */
   observation?: Observation;
+  /** 実行前後などの Observation 列 */
+  observations?: Observation[];
   evaluation?: Evaluation;
   errorMessage?: string;
   durationMs: number;
+  /** Tool 展開前の Plan Node（CALL 展開時は CALL の ID） */
+  planNodeId?: NodeId;
+  /** 実行 occurrence 識別子 */
+  occurrencePath?: string;
+  /** 前回 Binding との差分（Assertion 失敗とは別のレビューシグナル） */
+  bindingChange?: BindingChangeSignal;
 };
 
 type ScenarioResult = {
@@ -193,6 +213,71 @@ type ScenarioResult = {
 - **Assertion**: Playbook 上の期待宣言（`ASSERT visible` 等）
 - **Evaluator**: 実行時に Observation と Assertion を突き合わせる関数（executor 内）
 - **Evidence**: ScenarioResult（+ 添付ファイル）をレポート入力として扱う束
+- **Binding 変更**: 実行を止めず、`bindingChange` として Report に載せる（PRODUCT_DIRECTION §10）
+
+## Review Viewer 用（縦切りで導入した最小モデル）
+
+現行の `ScenarioResult` を置き換えず、Source Map と Viewer 入力を **加算** する。将来モデル全体は入れない。具体例は [examples/review-viewer-data-example.json](./examples/review-viewer-data-example.json)。
+
+```ts
+type SourceDocument = {
+  id: string;
+  kind: "natural-language" | "dsl" | "typescript" | "playwright";
+  content: string;
+  label?: string;
+};
+
+type SourceSpan = {
+  id: string;
+  sourceDocumentId: string;
+  start: number; // content 内 offset（含む）
+  end: number; // 含まない
+  label?: string;
+};
+
+type SourcePlanLink = {
+  sourceSpanId: string;
+  planNodeId: NodeId; // 多対多
+};
+
+type PlanNodeView = {
+  id: NodeId;
+  label: string;
+  stepType: Step["type"];
+};
+
+type ReviewBundle = {
+  sourceDocument: SourceDocument;
+  sourceSpans: SourceSpan[];
+  links: SourcePlanLink[];
+  planNodes: PlanNodeView[];
+  result: ScenarioResult;
+  runLabel?: string;
+  actionLabels?: Record<string, string>; // occurrencePath → 人間向け操作文
+  reviewMode?: "qualification" | "verification";
+};
+
+// 人間の判断（Report 上は localStorage に記録。core に進捗ヘルパーあり）
+type SpanReviewVerdict = "as_intended" | "needs_fix" | "deferred";
+type SpanReviewDecision = {
+  spanId: string;
+  verdict: SpanReviewVerdict;
+  comment?: string;
+};
+```
+
+### 現行モデルからの変更理由
+
+| 変更 | 理由 |
+|------|------|
+| `Observation.phase` / `observations[]` | Step を状態遷移として before/after を並べるため |
+| `planNodeId` / `occurrencePath` | Tool 展開後の実行を宣言 Step と区別するため |
+| `bindingChange` | Binding 差分を Assertion 失敗と分けて可視化するため |
+| `Source*` / `ReviewBundle` | 3 カラム Viewer が Source↔Plan↔Execution を辿るため |
+| `actionLabels` / `reviewMode` | 操作を人間語で示し、Qualification/Verification の起点を変えるため |
+| `SpanReviewDecision`（画面状態） | 実行 passed と人間のレビュー判断を混ぜないため |
+
+Translation 基盤・Binding DB・分岐 IR は導入しない。
 
 ## Resolver インターフェース
 

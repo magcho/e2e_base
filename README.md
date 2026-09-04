@@ -66,6 +66,14 @@ pnpm demo
 
 成功すると `reports/latest/report.html` に Trace（Resolution strategy / Binding / Screenshot）付きレポートが出力されます。
 
+### Review Viewer（3 カラム）
+
+```bash
+pnpm demo:review
+```
+
+`reports/review/review.html` に Source / Plan·Trace / Observation の Review Viewer が出ます。classic と alt の 2 fixture 比較と Binding 変更シグナルを含みます。手順の詳細は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+
 任意で AI resolver を有効化:
 
 ```bash
@@ -77,14 +85,15 @@ pnpm demo
 
 ```bash
 pnpm --filter @e2e-base/cli exec node ./dist/cli.js run ../../examples/submit-form.playbook --serve-fixtures
+pnpm --filter @e2e-base/cli exec node ./dist/cli.js review-demo
 ```
 
 オプション:
 
 - `--scenario <name>` — 実行する Scenario 名
-- `--out <dir>` — レポート出力先（既定: `reports/latest`）
+- `--out <dir>` — レポート出力先（既定: `reports/latest` / review-demo は `reports/review`）
 - `--headed` — ブラウザを表示
-- `--serve-fixtures` — `fixtures/` を `http://127.0.0.1:4173` で配信
+- `--serve-fixtures` — `fixtures/` を `http://127.0.0.1:4173` で配信（`run` 用）
 
 ## パイプライン（MVP）
 

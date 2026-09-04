@@ -35,6 +35,7 @@ Playwright のブラウザはリポジトリに含まれません。デモ実行
 | `pnpm lint` | ESLint |
 | `pnpm format` / `pnpm format:check` | Prettier 整形 / 検査 |
 | `pnpm demo` | fixtures 配信 + サンプル Playbook 実行 → `reports/latest/report.html` |
+| `pnpm demo:review` | classic/alt 2 fixture で同一 Playbook を実行 → 3 カラム Review Viewer（`reports/review/review.html`） |
 | `pnpm playwright:install` | Chromium インストール |
 
 PR 作成前や大きな変更後は `pnpm check` を通すのが標準フローです。
@@ -72,6 +73,23 @@ GitHub Actions（[`.github/workflows/ci.yml`](../.github/workflows/ci.yml)）が
 2. `reports/latest/report.html` を開く
 3. 各 Step に Resolution strategy・Binding・status・screenshot があることを確認する
 
+### Review Viewer（3 カラム）デモ
+
+同一 Canonical Playbook を UI の異なる 2 fixture（`fixtures/index.html` と `fixtures/alt/`）で実行し、検査意図・実行手順・証跡を照合する。用語は [REVIEW_GLOSSARY.md](./REVIEW_GLOSSARY.md)。
+
+```bash
+pnpm demo:review
+```
+
+1. `reports/review/review.html` を開く（alt 実行・Binding差分付き）
+2. 左の検査意図を選び、中央に対応する実行手順だけが出ることを確認する
+3. 右の証跡で実行前 / 実行後を切り替える
+4. Binding差分がある手順に「要確認: Binding差分」が出ていることを確認する（実行は止まらない）
+5. 未マッピングの検査意図・未マッピングの実行手順・未実行が隠れないことを確認する
+6. 適合 / 不適合 / 保留で判定し、レビュー進捗とレビュー完了を確認する
+
+手書き Source と Source Map は `examples/review/`。データ例は `docs/examples/review-viewer-data-example.json`。モデル変更理由は [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) の Review Viewer 節。
+
 `reports/` は生成物のため gitignore 対象です。
 
 ## リモートとの初回同期（注意）
@@ -91,6 +109,9 @@ GitHub Actions（[`.github/workflows/ci.yml`](../.github/workflows/ci.yml)）が
 - [VISION.md](./VISION.md) — 構想
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — 境界
 - [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — 型
+- [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) — プロダクト方針
+- [REVIEW_VIEWER_SPRINT.md](./REVIEW_VIEWER_SPRINT.md) — Review Viewer 縦切りの仕様判断
+- [REVIEW_GLOSSARY.md](./REVIEW_GLOSSARY.md) — Review UI 用語（QA 寄せ）
 - [PLAYBOOK_DSL.md](./PLAYBOOK_DSL.md) — DSL
 - [MVP_PLAN.md](./MVP_PLAN.md) — Done / 非目標
 - [TASKS.md](./TASKS.md) — タスクボード
