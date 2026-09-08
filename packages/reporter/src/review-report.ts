@@ -332,7 +332,11 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       padding: 0.75rem;
     }
     .ops-panel { min-height: 12rem; }
-    .ops-title { margin: 0 0 0.65rem; font-size: 1rem; font-weight: 650; }
+    .ops-hint {
+      margin: 0 0 0.55rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
     .op-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
     .op-item {
       display: grid;
@@ -348,14 +352,17 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       cursor: pointer;
       font: inherit;
       color: inherit;
+      scroll-margin-top: 0.75rem;
+      transition: opacity 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
     }
     .op-item.selected {
       border-color: var(--select);
       box-shadow: 0 0 0 2px rgba(31,111,235,0.15);
       background: var(--select-soft);
+      opacity: 1;
     }
-    .op-item.related { background: #f5f9ff; }
-    .op-item.dimmed { opacity: 0.35; }
+    .op-item.related { background: #f5f9ff; opacity: 1; }
+    .op-item.dimmed { opacity: 0.38; }
     .op-num { color: var(--muted); font-size: 0.8rem; }
     .op-label { font-size: 0.92rem; line-height: 1.35; }
     .op-status { font-size: 0.75rem; font-weight: 700; }
@@ -463,11 +470,11 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     <section class="col" id="col-intent">
       <h2>検査意図</h2>
       <div class="source-doc">${inlineSource}</div>
-      <p class="dim-note">検査意図を選ぶと、対応する実行手順と証跡を照合できます。</p>
+      <p class="dim-note">検査意図を選ぶと、中央の対応手順がハイライトされ、位置へスクロールします。</p>
     </section>
     <section class="col" id="col-ops">
       <h2>実行手順</h2>
-      <div class="ops-panel" id="ops-panel"><p class="empty">検査意図を選ぶと、対応する実行手順だけを表示します。</p></div>
+      <div class="ops-panel" id="ops-panel"></div>
     </section>
     <section class="col" id="col-obs">
       <h2>証跡</h2>
@@ -515,32 +522,14 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         const planSet = new Set(span.planIds);
         return data.steps.filter((s) => planSet.has(s.planNodeId)).map((s) => s.id);
       }
-      function renderOps() {
+      function buildOpsList() {
         const panel = document.getElementById("ops-panel");
-        if (!selectedSpanId) {
-          panel.innerHTML = '<p class="empty">検査意図を選ぶと、対応する実行手順だけを表示します。</p>';
+        if (!data.steps.length) {
+          panel.innerHTML = '<p class="empty">実行手順はありません。</p>';
           return;
         }
-        const span = spansById[selectedSpanId];
-        const related = relatedStepIds(selectedSpanId);
-        if (span.missing) {
-          panel.innerHTML =
-            '<h3 class="ops-title">' +
-            escapeHtml(span.label) +
-            '</h3><p class="empty">この検査意図に対応する実行手順がありません（未マッピング）。</p>';
-          return;
-        }
-        if (related.length === 0) {
-          panel.innerHTML =
-            '<h3 class="ops-title">' +
-            escapeHtml(span.label) +
-            '</h3><p class="empty">対応する実行手順はありません。</p>';
-          return;
-        }
-        const items = related
-          .map((id, i) => {
-            const step = stepsById[id];
-            const selected = selectedStepId === id;
+        const items = data.steps
+          .map((step, i) => {
             const st =
               step.status === "passed"
                 ? '<span class="op-status ok">合格</span>'
@@ -551,10 +540,10 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
               ? '<div class="attn">要確認: Binding差分</div>'
               : "";
             return (
-              '<button type="button" class="op-item' +
-              (selected ? " selected" : " related") +
-              '" data-step-id="' +
-              escapeHtml(id) +
+              '<button type="button" class="op-item" data-step-id="' +
+              escapeHtml(step.id) +
+              '" data-plan-id="' +
+              escapeHtml(step.planNodeId || "") +
               '"><span class="op-num">' +
               (i + 1) +
               '.</span><span class="op-label">' +
@@ -567,18 +556,52 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           })
           .join("");
         panel.innerHTML =
-          '<h3 class="ops-title">' +
-          escapeHtml(span.label) +
-          '</h3><div class="op-list">' +
+          '<p class="ops-hint" id="ops-hint">左の検査意図を選ぶと、対応する手順をハイライトします。</p><div class="op-list">' +
           items +
-          '</div><p class="dim-note">関係しない実行手順は畳んでいます。内部 ID は証跡の詳細で確認できます。</p>';
+          "</div>";
         panel.querySelectorAll(".op-item").forEach((el) => {
           el.addEventListener("click", () => {
             selectedStepId = el.getAttribute("data-step-id");
-            renderOps();
+            highlightOps({ scroll: false });
             renderObs();
           });
         });
+      }
+      function highlightOps(options) {
+        const scroll = !options || options.scroll !== false;
+        const related = selectedSpanId ? relatedStepIds(selectedSpanId) : [];
+        const relatedSet = new Set(related);
+        const hint = document.getElementById("ops-hint");
+        if (hint) {
+          if (!selectedSpanId) {
+            hint.textContent = "左の検査意図を選ぶと、対応する手順をハイライトします。";
+          } else if (spansById[selectedSpanId] && spansById[selectedSpanId].missing) {
+            hint.textContent = "選択中の検査意図は未マッピングです（対応する実行手順なし）。";
+          } else if (related.length === 0) {
+            hint.textContent = "選択中の検査意図に対応する実行手順はありません。";
+          } else {
+            hint.textContent =
+              "選択中の検査意図に対応する手順: " + related.length + " 件（青枠／薄い青）。";
+          }
+        }
+        document.querySelectorAll(".op-item").forEach((el) => {
+          const id = el.getAttribute("data-step-id");
+          const isRelated = relatedSet.has(id);
+          const isSelected = id === selectedStepId;
+          el.classList.toggle("related", isRelated && !isSelected);
+          el.classList.toggle("selected", isSelected);
+          el.classList.toggle("dimmed", related.length > 0 && !isRelated);
+        });
+        if (scroll && related.length > 0) {
+          const targetId = relatedSet.has(selectedStepId) ? selectedStepId : related[0];
+          const target = document.querySelector('.op-item[data-step-id="' + targetId + '"]');
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        }
+      }
+      function renderOps() {
+        highlightOps({ scroll: true });
       }
       function renderObs() {
         const panel = document.getElementById("obs-panel");
@@ -701,9 +724,10 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       document.querySelectorAll(".intent-span").forEach((el) => {
         el.addEventListener("click", () => selectSpan(el.getAttribute("data-span-id")));
       });
+      buildOpsList();
       const first = data.spans.find((s) => !s.missing) || data.spans[0];
       if (first) selectSpan(first.id);
-      else refreshIntentStatuses();
+      else highlightOps({ scroll: false });
     })();
   </script>
 </body>
