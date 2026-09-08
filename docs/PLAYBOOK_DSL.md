@@ -2,6 +2,8 @@
 
 テキスト構文と内部モデルは分離する。本ファイルは **テキスト構文** のみを定義する。
 
+この DSL は現行 MVP では人間が編集し、パーサへ渡す入力として利用する。一方、技術 MVP 後の保存モデルでは Canonical Playbook IR を唯一の正本として Git に固定し、Playbook DSL は IR から機械的に導出する人間向け表示とする。DSL は IR より情報量が少なく、DSL 単体から同一の IR を復元できることは保証しない。現在の入力形式と将来の正本を混同しないこと。詳細は [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) を参照する。
+
 ## ファイル拡張子
 
 `.playbook`（推奨）または `.pb`
@@ -97,7 +99,7 @@ CLICK testid="submit-btn"
 
 ## パース結果
 
-パーサは Stable ID 付きの `Playbook` IR を返す。構文エラーは行番号付きで報告する。
+現行 MVP のパーサは Stable ID 付きの `Playbook` IR を返す。構文エラーは行番号付きで報告する。このパース結果は現在の実行核を検証するためのモデルであり、将来の Canonical Playbook IR が持つ Source 対応、実行ポリシー、コンテキスト参照、Provenance などを DSL だけから完全に再構築できることを意味しない。
 
 ## 非対応（MVP 外）
 

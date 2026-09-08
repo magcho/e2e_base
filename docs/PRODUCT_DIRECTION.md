@@ -4,6 +4,7 @@
 
 - 状態: 現時点の合意（実装詳細は未決）
 - 記録日: 2026-09-04
+- 最終更新: 2026-09-08
 - 対象: `e2e_base` の技術 MVP 完了後に行ったプロダクト壁打ち
 
 本書は、現在の実装を直ちに変更するための仕様書ではない。技術 MVP の先で何をプロダクト価値とし、今後の設計・実装をどの方向へ進めるかを、将来の開発者とエージェントが参照できる形で記録する。
@@ -41,13 +42,21 @@
 
 ```text
 Source Representation
-  Natural Language / DSL / TypeScript / Playwright など
+  Natural Language / TypeScript / Playwright など
                          │
-                         │ Translation / Compilation / Import
+                         │ Translation / Build / Import
                          ▼
                  Canonical Playbook IR
                          │
-                         │ Resolution / Execution / Evaluation
+                         ├─ Render ─→ Playbook DSL
+                         │            （人間向け表示）
+                         │
+                         │ + Execution Context / Web Page State
+                         │ Resolution / Expansion
+                         ▼
+          Resolved Execution Plan / Trace
+                         │
+                         │ Execution / Observation / Evaluation
                          ▼
                   Execution Result
                          │
@@ -58,16 +67,17 @@ Source Representation
 
 ### 3.1 Translation 側
 
-自然言語、独自 DSL、TypeScript API などを Canonical Playbook IR に変換する。入力形式ごとに変換の性質と保証は異なる。
+自然言語、TypeScript API などを Canonical Playbook IR に変換する。入力形式ごとに変換の性質と保証は異なる。
 
 | 入力 | 変換の性質 | 想定する保証 |
 |------|------------|--------------|
-| Playbook DSL | Compile | 制約された文法内では決定的 |
 | TypeScript Builder API | Build / Compile | Builder API の範囲内では決定的 |
 | 自然言語 | Translate / Generate | 推論を含むため、実行を通じた人間の確認が必要 |
 | 一般的な Playwright コード | Import / Analyze / Record | 任意の JavaScript を完全かつ静的に変換できるとは限らない |
 
 Playwright コードは条件分岐、ループ、外部 I/O、任意の JavaScript を含められる。このため、Playwright から IR への変換は、対応する構文の制限、Builder API の利用、または一回の実行で観測した操作列の記録など、保証範囲を明示する必要がある。
+
+Playbook DSL は、Canonical Playbook IR から機械的に導出する人間向け表現とする。DSL は IR より情報量が少なく、DSL 単体から同一の IR を復元できるとは限らないため、正本または完全な入力表現としては扱わない。現行 MVP の DSL パーサは技術検証用の入口として維持するが、将来の保存・編集モデルとは区別する。
 
 ### 3.2 Runtime 側
 
@@ -75,11 +85,12 @@ Canonical Playbook IR を入力として、次を行う。
 
 1. Step を順番に解釈する
 2. 必要な Target を現在の画面状態に対して Resolve する
-3. Binding に基づいて操作する
-4. 実行前後の状態を Observation として取得する
-5. Assertion を Evaluation する
-6. Execution Result を生成する
-7. 人間向け Report をレンダリングする
+3. Tool 展開、変数の具体化、Binding などを含む Resolved Execution Plan / Trace を実行ごとに形成する
+4. Binding に基づいて操作する
+5. 実行前後の状態を Observation として取得する
+6. Assertion を Evaluation する
+7. Execution Result を生成する
+8. 人間向け Report をレンダリングする
 
 実行時に元の自然言語を再解釈しない。同じ検査を反復するときは、Git に固定された Canonical Playbook IR を直接実行する。
 
@@ -87,19 +98,35 @@ Canonical Playbook IR を入力として、次を行う。
 
 ## 4. Canonical Playbook IR の位置づけ
 
-Canonical Playbook IR は、ランタイムが実行する正本である。`.playbook` テキストは IR そのものではなく、IR を生成または表示する一つの表現として扱う。
+Canonical Playbook IR は、ランタイムが実行する唯一の正本である。Playbook DSL は IR を人間が読める形へ投影した導出表現であり、Git 上の保存対象にはしない。必要なときに IR から生成する。
+
+IR から DSL への変換は決定的に行えるものとするが、これは可逆な相互変換を意味しない。IR には Source との対応、実行ポリシー、コンテキスト参照、Stable ID、Provenance など、DSL の本文だけでは復元できない情報を保持できる。同じ DSL 表示へ投影される異なる IR が存在し得るため、DSL を編集しても元の IR 全体を再構築できるとは限らない。
+
+一方で、IR に存在する実行意味のうち、人間が検査手順の妥当性を判断するために必要な情報は、DSL 本文または付随する注釈として表示しなければならない。DSL が全フィールドを保持しないことと、判断に必要な意味を隠すことは別である。
 
 想定する運用は次のとおり。
 
 1. 人間または AI が Source Representation を作る
-2. Translator / Compiler が Canonical Playbook IR を生成する
+2. Translator / Builder / Importer が Canonical Playbook IR を生成する
 3. Canonical Playbook IR を Git にコミットする
-4. 人間が実行計画と初回実行結果を確認する
-5. 確認済みの IR を以後の反復実行に利用する
+4. Review Viewer が IR から Playbook DSL を生成して表示する
+5. 人間が実行計画と初回実行結果を確認する
+6. 確認済みの IR を以後の反復実行に利用する
 
 自然言語や Translator のモデル・バージョンが変わっても、コミット済み IR は自動的には変わらない。再翻訳で IR が変わる場合は、変更として確認する。
 
 Source だけが変更され、対応する IR が再生成されない状態も検出できなければならない。そのため、Canonical Playbook IR または付随する Metadata は、少なくとも Source の識別子・Digest と、利用した Translator の識別情報へ関連付ける。これらを IR 本体に持つか別の Manifest に持つかは未決である。
+
+### 4.1 固定するものと実行ごとに生成するもの
+
+| 概念 | 性質 | 主な内容 | 保存先 |
+|------|------|----------|--------|
+| Canonical Playbook IR | 検査手順の正本 | Action、Assertion、Semantic Target、Tool、実行ポリシー、Source 対応 | Git |
+| Playbook DSL | IR の導出表示 | 人間が検査手順の意味を読むための表現 | 原則として保存しない |
+| Resolved Execution Plan / Trace | 実行ごとの具体化 | Tool occurrence、具体化した値、Binding、Resolution の根拠 | 実行履歴 |
+| Execution Result | 実行して観測した結果 | Status、Evaluation、Observation、Artifact 参照 | 実行履歴 |
+
+Canonical IR は実行環境に応じて書き換えない。Execution Context や Web ページ状態によって変わる情報は、Resolved Execution Plan / Trace または Execution Result に保持する。
 
 ## 5. 人間による確認は実行を通じて行う
 
@@ -143,12 +170,14 @@ Source だけが変更され、対応する IR が再生成されない状態も
 
 Git に固定した Playbook IR を繰り返し実行し、対象アプリケーションの現在の状態を検証する。毎回 Translation を行わず、通常は成功・失敗と前回からの重要な変化を確認する。
 
+Verification で固定するのは Canonical Playbook IR である。Execution Context や Web ページ状態を与えた結果として、実行ごとの Resolved Execution Plan / Trace と Execution Result が生成される。前回との差分は Canonical IR の変化ではなく、同じ IR が異なる環境でどのように具体化され、何を観測したかの変化として扱う。
+
 人間による詳細確認が必要になる代表例は次のとおり。
 
 - Playbook IR が変更された
 - Binding が前回から変わった
 - Target が曖昧になった
-- 実行経路または実行ポリシーが変わった
+- 具体化した変数値や Binding など、Resolved Execution Plan が前回から変わった
 - Assertion が失敗した
 
 アプリケーション自体の変更は、自動的に Playbook の再認定理由とはしない。同じ検査を変更後のアプリケーションへ反復することが Verification の目的だからである。
@@ -182,7 +211,7 @@ Qualification と Verification の中心 UI として、Cypress のタイムト�
 | 左: Source | 中: Plan / Trace | 右: Observation |
 |------------|------------------|------------------|
 | 人間または AI が入力した意図 | 生成・展開・実行された検査手順 | ブラウザで実際に起きたこと |
-| 自然言語、DSL、TypeScript など | Plan Node、Step Execution、状態 | Before / After / Assertion / Error |
+| 自然言語、TypeScript など | IR から導出した DSL、Plan Node、Step Execution、状態 | Before / After / Assertion / Error |
 | Source Span と対応状況 | Tool 展開、Binding、Expected | 対象要素の強調、Actual、画面 |
 
 ### 8.1 基本操作
@@ -195,7 +224,7 @@ Qualification と Verification の中心 UI として、Cypress のタイムト�
 
 ### 8.2 中央は DSL 表示だけに限定しない
 
-中央カラムは DSL 風に表示できるが、役割は単なる DSL Viewer ではない。次を重ねて表示する Execution Plan / Trace とする。
+中央カラムでは、Canonical Playbook IR から導出した Playbook DSL を、人間が検査意図を理解するための基本表示として使う。ただし役割は単なる DSL Viewer ではない。固定された IR の意味表現に、今回の Resolved Execution Plan / Trace を重ねて表示する。
 
 - 宣言された Playbook Step
 - Tool 展開後の実行 Step
@@ -308,27 +337,30 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 2. 目的達成のために自由に探索するブラウザエージェントではなく、固定された検査手順を制約付きで実行する
 3. Translation 系と Runtime 系を別の機構として扱う
 4. Canonical Playbook IR を実行上の正本とし、Git で固定・反復利用する
-5. Runtime は反復実行時に元の自然言語を再解釈しない
-6. 人間は IR 全体を静的に証明するのではなく、Source、Plan、Execution、Observation を合わせて検査手順を確認する
-7. Playbook IR は原則として線形とし、条件分岐や自由な実行時計画変更を認めない
-8. Qualification と Verification を区別する
-9. Execution Result は構造化するが、目的なく巨大なログへ拡張しない
-10. 3 カラム Review Viewer を、入力・実行計画・ブラウザ状態を照合する中心 UI の候補とする
-11. Source Map は多対多を許容し、正しい対応だけでなく未マッピングや未実行も表示する
-12. Binding キャッシュと Execution Result の履歴は責務を分ける
-13. Source と生成済み IR の対応が古くなったことを検出できるようにする
-14. Qualification 実行環境の安全性は Runtime の必須責務にせず、接続先制限などは任意機能として分離する
-15. Binding が前回から変わっても既定では実行を継続し、差分を Report 上のレビューシグナルとして可視化する
+5. Playbook DSL は IR から機械的に導出する人間向け表現とし、正本として Git に保存しない
+6. DSL 単体から Canonical IR 全体を復元できることは保証しない
+7. Runtime は反復実行時に元の自然言語を再解釈しない
+8. 環境依存の Binding や具体化結果は Canonical IR ではなく Resolved Execution Plan / Trace に記録する
+9. 人間は IR 全体を静的に証明するのではなく、Source、Plan、Execution、Observation を合わせて検査手順を確認する
+10. Playbook IR は原則として線形とし、条件分岐や自由な実行時計画変更を認めない
+11. Qualification と Verification を区別する
+12. Execution Result は構造化するが、目的なく巨大なログへ拡張しない
+13. 3 カラム Review Viewer を、入力・実行計画・ブラウザ状態を照合する中心 UI の候補とする
+14. Source Map は多対多を許容し、正しい対応だけでなく未マッピングや未実行も表示する
+15. Binding キャッシュと Execution Result の履歴は責務を分ける
+16. Source と生成済み IR の対応が古くなったことを検出できるようにする
+17. Qualification 実行環境の安全性は Runtime の必須責務にせず、接続先制限などは任意機能として分離する
+18. Binding が前回から変わっても既定では実行を継続し、差分を Report 上のレビューシグナルとして可視化する
 
 ## 12. 未決事項
 
 次は議論で方向性が出たものの、まだ仕様として確定していない。
 
 - Canonical Playbook IR の保存形式と Schema Versioning
-- Playbook DSL を入力と可逆表示の両方にするか、Review View と分離するか
 - Qualification の承認記録をプロダクト内で持つか、Git / PR レビューに委ねるか
-- Source Representation と Canonical IR のどちらをリポジトリ上の編集起点にするか
+- Canonical IR の変更を、人間がどの編集 UI / Source Representation から行うか
 - Source Digest と Translator 情報を IR 本体、Manifest、別の Provenance データのどこに保存するか
+- Resolved Execution Plan / Trace の最小スキーマと保存期間
 - Binding の再利用をデフォルトにするか
 - Binding 変更を表す Execution Result の形式と、Review Viewer 上の表示方法
 - Execution Policy に含める設定項目
@@ -342,11 +374,13 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 次の実装へ進む前に、現行型との差分を明示したうえで以下を設計する。
 
 1. Canonical Playbook IR における実行意味と非意味的 Metadata の境界
-2. SourceDocument / SourceReference / PlanNode の多対多 Mapping
-3. Tool 定義上の Step と実行 occurrence の識別
-4. Step 前後を扱える Observation モデル
-5. 最小の Execution Result と Reporter 入力
-6. Qualification / Verification のライフサイクルと再認定条件
-7. Binding 変更と Mapping Coverage を表示する Review Viewer のプロトタイプ
+2. Canonical IR から Playbook DSL を決定的に生成する Renderer と、判断に必要な注釈の範囲
+3. Canonical IR と Resolved Execution Plan / Trace の境界
+4. SourceDocument / SourceReference / PlanNode の多対多 Mapping
+5. Tool 定義上の Step と実行 occurrence の識別
+6. Step 前後を扱える Observation モデル
+7. 最小の Execution Result と Reporter 入力
+8. Qualification / Verification のライフサイクルと再認定条件
+9. Binding 変更と Mapping Coverage を表示する Review Viewer のプロトタイプ
 
 新しい概念を一度に現行 `@e2e-base/core` へ追加してはならない。具体的なユースケースを一本ずつ通し、Viewer または Runtime に必要なことが確認できた概念から導入する。

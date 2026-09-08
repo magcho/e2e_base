@@ -21,14 +21,17 @@ Specification
 
 MVP では **Translation（自然言語→Playbook）を後回し**にし、人手またはテンプレートで書いた Playbook を入口とする。仮説検証の焦点は **Semantic Target の Resolution と証跡** にある。
 
-将来も Translation と Runtime は別の機構として扱う。自然言語、DSL、TypeScript などの入力は Canonical Playbook IR へ変換し、反復実行時は Git に固定された IR を直接実行する。元の自然言語を実行のたびに再解釈しない。
+将来も Translation と Runtime は別の機構として扱う。自然言語、TypeScript などの入力は Canonical Playbook IR へ変換し、反復実行時は Git に固定された IR を直接実行する。元の自然言語を実行のたびに再解釈しない。
+
+Playbook DSL は Canonical Playbook IR から機械的に導出する人間向け表現とし、正本としては保存しない。DSL は IR より情報量が少ないため、DSL 単体から同一の IR を復元できることは保証しない。反復実行では固定した IR に Execution Context と Web ページ状態を与え、環境依存の Binding や具体化結果を Resolved Execution Plan / Trace として実行ごとに記録する。
 
 ## 設計原則
 
 | 原則 | 意味 |
 |------|------|
 | Translation ≠ Resolution | 「送信する」と「どのボタンか」を混ぜない |
-| Playbook は中間 IR | テキスト構文と内部 AST/モデルを分離する |
+| Playbook IR が正本 | Git に固定し、DSL は IR から生成する人間向け表示とする |
+| IR ≠ Resolved Execution Plan | 固定された検査意味と、環境依存の具体化結果を分離する |
 | Scenario は最小独立単位 | TestCase 階層や `beforeEach` を置かない |
 | IR は原則として線形 | 条件分岐や自由な実行時計画変更を持ち込まない |
 | Tool は名前付き Step 列 | 再帰禁止・ローカルスコープ・失敗は伝播 |

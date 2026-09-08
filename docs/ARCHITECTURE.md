@@ -2,9 +2,11 @@
 
 ## 全体像
 
+以下は現行 MVP の実装構成を示す。現時点ではテキスト DSL を入力としてパースするが、将来の保存モデルでは Canonical Playbook IR を唯一の正本として Git に固定し、DSL は IR から導出する人間向け表示へ移行する。Tool occurrence、具体化した値、環境依存の Binding などは、IR 自体ではなく Resolved Execution Plan / Trace として実行ごとに生成する。将来方針は [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) を参照する。
+
 ```
 ┌─────────────┐
-│  Playbook   │  テキスト DSL（人間編集）
+│  Playbook   │  テキスト DSL（現行 MVP の入力）
 └──────┬──────┘
        │ parse (@e2e-base/core)
        ▼
