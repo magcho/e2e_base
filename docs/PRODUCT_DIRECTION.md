@@ -322,12 +322,28 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 
 ## 12. Translation の暫定アプローチ（Skill 先行）
 
-本格的な NL → Canonical Playbook IR Translator は後回しにする。当面の代替は次のとおり。
+本格的な NL → Canonical Playbook IR Translator は後回しにする。当面の代替は、Unix 原則に近い **単一責務 Skill の組み合わせ** とする。
 
-1. **エージェント用 Skill**（[skills/e2e-playbook/SKILL.md](../skills/e2e-playbook/SKILL.md)）が、再実行可能な `.playbook` の書き方・禁止事項・提出手順を教える
-2. **形式チェック**は新規 Validator を増やさず、既存の `parsePlaybook`（`e2e-base run` 入口）成功をもって足りるとする
-3. **意味的妥当性**は従来どおり Runtime 実行と Report による Qualification で確認する
-4. Translation を Runtime 実行ループに入れない（反復実行時に NL を再解釈しない、という決定は維持）
+### Primitive（1 Skill = 1 責務）
+
+| Skill | 責務 |
+|-------|------|
+| [writing-playbook-dsl](../skills/writing-playbook-dsl/SKILL.md) | `.playbook` の書き方・語彙・制約 |
+| [running-playbook](../skills/running-playbook/SKILL.md) | 実行・形式チェック・失敗の切り分け |
+| [qualifying-playbook](../skills/qualifying-playbook/SKILL.md) | 人間 Qualification の観点 |
+
+### Usecase（組み合わせ）
+
+| Skill | いつ |
+|-------|------|
+| [submitting-inspection-after-impl](../skills/submitting-inspection-after-impl/SKILL.md) | 実装後に検査手順を提出する |
+| [revising-playbook-for-requalification](../skills/revising-playbook-for-requalification/SKILL.md) | 既存 Playbook を直して再認定する |
+
+運用上の約束:
+
+1. 形式チェックは新規 Validator を増やさず、既存の `parsePlaybook`（`e2e-base run` 入口）成功をもって足りるとする
+2. 意味的妥当性は Runtime 実行と Report による Qualification で確認する
+3. Translation を Runtime 実行ループに入れない（反復実行時に NL を再解釈しない）
 
 将来 Translator を独立機構として追加する場合も、出力は同じ Playbook / IR 制約を通り、Runtime 境界は変えない。
 
