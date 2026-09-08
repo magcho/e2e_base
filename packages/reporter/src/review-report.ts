@@ -301,6 +301,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       font: inherit;
       color: inherit;
       text-align: left;
+      scroll-margin-top: 0.75rem;
     }
     .intent-span.related { background: var(--select-soft); }
     .intent-span.selected {
@@ -470,7 +471,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     <section class="col" id="col-intent">
       <h2>検査意図</h2>
       <div class="source-doc">${inlineSource}</div>
-      <p class="dim-note">検査意図を選ぶと、中央の対応手順がハイライトされ、位置へスクロールします。</p>
+      <p class="dim-note">検査意図と実行手順はクリックで相互にハイライトされます。</p>
     </section>
     <section class="col" id="col-ops">
       <h2>実行手順</h2>
@@ -522,6 +523,35 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         const planSet = new Set(span.planIds);
         return data.steps.filter((s) => planSet.has(s.planNodeId)).map((s) => s.id);
       }
+      function spansForStep(stepId) {
+        const step = stepsById[stepId];
+        if (!step || !step.planNodeId) return [];
+        return data.spans.filter((span) => (span.planIds || []).includes(step.planNodeId));
+      }
+      function scrollIntentIntoView(spanId) {
+        const el = document.querySelector('.intent-span[data-span-id="' + spanId + '"]');
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      function applyStepSelection(stepId, options) {
+        const opts = options || {};
+        selectedStepId = stepId;
+        const linked = spansForStep(stepId);
+        if (linked.length > 0) {
+          const keep =
+            selectedSpanId && linked.some((s) => s.id === selectedSpanId)
+              ? selectedSpanId
+              : linked[0].id;
+          selectedSpanId = keep;
+        }
+        const step = selectedStepId ? stepsById[selectedStepId] : null;
+        if (opts.resetPhase !== false) {
+          phase = step && step.observations.some((o) => o.phase === "after") ? "after" : "before";
+        }
+        refreshIntentStatuses();
+        highlightOps({ scroll: !!opts.scrollOps });
+        if (opts.scrollIntent && selectedSpanId) scrollIntentIntoView(selectedSpanId);
+        renderObs();
+      }
       function buildOpsList() {
         const panel = document.getElementById("ops-panel");
         if (!data.steps.length) {
@@ -556,14 +586,16 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           })
           .join("");
         panel.innerHTML =
-          '<p class="ops-hint" id="ops-hint">左の検査意図を選ぶと、対応する手順をハイライトします。</p><div class="op-list">' +
+          '<p class="ops-hint" id="ops-hint">左の検査意図、または中央の実行手順をクリックすると相互にハイライトします。</p><div class="op-list">' +
           items +
           "</div>";
         panel.querySelectorAll(".op-item").forEach((el) => {
           el.addEventListener("click", () => {
-            selectedStepId = el.getAttribute("data-step-id");
-            highlightOps({ scroll: false });
-            renderObs();
+            applyStepSelection(el.getAttribute("data-step-id"), {
+              scrollOps: false,
+              scrollIntent: true,
+              resetPhase: true,
+            });
           });
         });
       }
@@ -574,7 +606,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         const hint = document.getElementById("ops-hint");
         if (hint) {
           if (!selectedSpanId) {
-            hint.textContent = "左の検査意図を選ぶと、対応する手順をハイライトします。";
+            hint.textContent = "左の検査意図、または中央の実行手順をクリックすると相互にハイライトします。";
           } else if (spansById[selectedSpanId] && spansById[selectedSpanId].missing) {
             hint.textContent = "選択中の検査意図は未マッピングです（対応する実行手順なし）。";
           } else if (related.length === 0) {
@@ -714,11 +746,18 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       function selectSpan(spanId) {
         selectedSpanId = spanId;
         const related = relatedStepIds(spanId);
-        selectedStepId = related[0] || null;
-        const step = selectedStepId ? stepsById[selectedStepId] : null;
-        phase = step && step.observations.some((o) => o.phase === "after") ? "after" : "before";
+        const nextStepId = related[0] || null;
+        if (nextStepId) {
+          applyStepSelection(nextStepId, {
+            scrollOps: true,
+            scrollIntent: false,
+            resetPhase: true,
+          });
+          return;
+        }
+        selectedStepId = null;
         refreshIntentStatuses();
-        renderOps();
+        highlightOps({ scroll: false });
         renderObs();
       }
       document.querySelectorAll(".intent-span").forEach((el) => {
