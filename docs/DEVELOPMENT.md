@@ -86,7 +86,8 @@ pnpm demo:review
 3. 右の証跡で実行前 / 実行後を切り替える
 4. Binding差分がある手順に「要確認: Binding差分」が出ていることを確認する（実行は止まらない）
 5. 未マッピングの検査意図・未マッピングの実行手順・未実行が隠れないことを確認する
-6. 適合 / 不適合 / 保留で判定し、レビュー進捗とレビュー完了を確認する
+
+判定の記録は Viewer ではなく Git / PR で行う。
 
 手書き Source と Source Map は `examples/review/`。データ例は `docs/examples/review-viewer-data-example.json`。モデル変更理由は [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) の Review Viewer 節。
 

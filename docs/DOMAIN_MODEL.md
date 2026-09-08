@@ -256,14 +256,6 @@ type ReviewBundle = {
   actionLabels?: Record<string, string>; // occurrencePath → 人間向け操作文
   reviewMode?: "qualification" | "verification";
 };
-
-// 人間の判断（Report 上は localStorage に記録。core に進捗ヘルパーあり）
-type SpanReviewVerdict = "as_intended" | "needs_fix" | "deferred";
-type SpanReviewDecision = {
-  spanId: string;
-  verdict: SpanReviewVerdict;
-  comment?: string;
-};
 ```
 
 ### 現行モデルからの変更理由
@@ -275,7 +267,6 @@ type SpanReviewDecision = {
 | `bindingChange` | Binding 差分を Assertion 失敗と分けて可視化するため |
 | `Source*` / `ReviewBundle` | 3 カラム Viewer が Source↔Plan↔Execution を辿るため |
 | `actionLabels` / `reviewMode` | 操作を人間語で示し、Qualification/Verification の起点を変えるため |
-| `SpanReviewDecision`（画面状態） | 実行 passed と人間のレビュー判断を混ぜないため |
 
 Translation 基盤・Binding DB・分岐 IR は導入しない。
 

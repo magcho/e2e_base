@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   annotateBindingChanges,
-  classifySpanReviewItem,
   describeBindingChange,
   expandScenarioOccurrences,
   formatLocatorLabel,
@@ -10,7 +9,6 @@ import {
   listUnmappedSourceSpanIds,
   parsePlaybook,
   summarizeReviewAttention,
-  summarizeSpanReviewProgress,
   type Binding,
 } from "../src/index.js";
 
@@ -172,61 +170,6 @@ describe("summarizeReviewAttention", () => {
     });
     expect(attention.needsReview).toBe(false);
     expect(attention.reviewLabel).toBe("なし");
-  });
-});
-
-describe("review judgment progress", () => {
-  it("counts decided spans and scenario completion readiness", () => {
-    const spanIds = ["a", "b", "c", "d"];
-    const decisions = {
-      a: { spanId: "a", verdict: "as_intended" as const },
-      b: { spanId: "b", verdict: "needs_fix" as const },
-    };
-    const progress = summarizeSpanReviewProgress(spanIds, decisions);
-    expect(progress.decidedCount).toBe(2);
-    expect(progress.totalCount).toBe(4);
-    expect(progress.allDecided).toBe(false);
-    expect(progress.judgmentLabel).toBe("未完了");
-  });
-
-  it("marks judgment complete only when all spans decided and scenario completed", () => {
-    const spanIds = ["a", "b"];
-    const decisions = {
-      a: { spanId: "a", verdict: "as_intended" as const },
-      b: { spanId: "b", verdict: "deferred" as const },
-    };
-    expect(summarizeSpanReviewProgress(spanIds, decisions).allDecided).toBe(true);
-    expect(summarizeSpanReviewProgress(spanIds, decisions).judgmentLabel).toBe("未完了");
-    expect(
-      summarizeSpanReviewProgress(spanIds, decisions, { scenarioCompleted: true }).judgmentLabel,
-    ).toBe("完了");
-  });
-
-  it("classifies span review item status including missing mapping", () => {
-    expect(
-      classifySpanReviewItem({
-        spanId: "x",
-        linkedPlanCount: 0,
-        decision: undefined,
-        selectedSpanId: null,
-      }),
-    ).toBe("missing");
-    expect(
-      classifySpanReviewItem({
-        spanId: "y",
-        linkedPlanCount: 1,
-        decision: undefined,
-        selectedSpanId: "y",
-      }),
-    ).toBe("reviewing");
-    expect(
-      classifySpanReviewItem({
-        spanId: "z",
-        linkedPlanCount: 1,
-        decision: { spanId: "z", verdict: "as_intended" },
-        selectedSpanId: null,
-      }),
-    ).toBe("confirmed");
   });
 });
 

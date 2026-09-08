@@ -63,8 +63,8 @@ function buildInlineSourceHtml(
 }
 
 /**
- * レビュー作業向け 3 カラム画面。
- * 動詞: 選ぶ → 照合する → 判定する → 完了する
+ * 照合用 3 カラム画面。
+ * 動詞: 選ぶ → 照合する（判定の記録は Git / PR）
  */
 export async function writeReviewHtmlReport(options: RenderReviewReportOptions): Promise<string> {
   const { bundle, outputPath, playbookPath, compareRuns } = options;
@@ -182,8 +182,6 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     planIds: spanToPlans.get(span.id) ?? [],
     missing: unmappedSpans.has(span.id),
   }));
-
-  const storageKey = `e2e-review:${result.scenarioId}:${bundle.runLabel ?? "default"}`;
 
   const html = `<!doctype html>
 <html lang="ja">
@@ -327,7 +325,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     .intent-status.reviewing { background: var(--select-soft); color: var(--select); }
     .intent-status.pending { background: #eef2f6; color: var(--muted); }
     .intent-status.missing { background: var(--danger-soft); color: var(--danger); }
-    .ops-panel, .obs-panel, .judge-panel {
+    .ops-panel, .obs-panel {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -385,7 +383,6 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     .dim-note { color: var(--muted); font-size: 0.8rem; margin: 0.4rem 0 0; }
     .empty { color: var(--muted); font-size: 0.9rem; }
     .obs-panel { min-height: 18rem; }
-    .phase-tabs { display: flex; gap: 0.35rem; margin: 0.4rem 0 0.65rem; }
     .phase-tabs button {
       border: 1px solid var(--line);
       background: #fff;
@@ -429,39 +426,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       font-size: 0.86rem;
     }
     .assert-grid .k { color: var(--muted); }
-    .judge-panel { margin-top: 0.75rem; }
-    .judge-panel h3 { margin: 0 0 0.45rem; font-size: 0.9rem; }
-    .judge-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .judge-actions button, .complete-btn {
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 8px;
-      padding: 0.4rem 0.7rem;
-      cursor: pointer;
-      font: inherit;
-    }
-    .judge-actions button.active-as { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); font-weight: 700; }
-    .judge-actions button.active-fix { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); font-weight: 700; }
-    .judge-actions button.active-defer { border-color: #9aa7b5; background: #eef2f6; font-weight: 700; }
-    .complete-btn {
-      margin-top: 0.55rem;
-      width: 100%;
-      background: var(--select);
-      border-color: var(--select);
-      color: #fff;
-      font-weight: 700;
-    }
-    .complete-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .comment-box {
-      width: 100%;
-      margin-top: 0.45rem;
-      min-height: 2.6rem;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 0.45rem 0.55rem;
-      font: inherit;
-      resize: vertical;
-    }
+    .phase-tabs { display: flex; gap: 0.35rem; margin: 0.4rem 0 0.65rem; }
     details.tech {
       margin-top: 0.55rem;
       color: var(--muted);
@@ -482,14 +447,6 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
         <span class="k">実行結果</span>
         <span class="v">${result.status === "passed" ? "合格" : "不合格"}</span>
       </div>
-      <div class="pill" id="progress-pill">
-        <span class="k">レビュー進捗</span>
-        <span class="v" id="progress-value">0 / ${sourceSpans.length} 件レビュー済</span>
-      </div>
-      <div class="pill" id="judgment-pill">
-        <span class="k">レビュー判定</span>
-        <span class="v" id="judgment-value">未完了</span>
-      </div>
       <div class="pill ${attention.needsReview ? "warn" : "ok"}">
         <span class="k">要確認</span>
         <span class="v">${escapeHtml(attention.reviewLabel)}</span>
@@ -498,24 +455,15 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     <p class="mode-hint">${escapeHtml(modeHint)}</p>
     <p class="meta-line">Scenario: <strong>${escapeHtml(result.scenarioName)}</strong>
       ${bundle.runLabel ? ` · Run: <code>${escapeHtml(bundle.runLabel)}</code>` : ""}
-      ${playbookPath ? ` · <code>${escapeHtml(playbookPath)}</code>` : ""}</p>
+      ${playbookPath ? ` · <code>${escapeHtml(playbookPath)}</code>` : ""}
+      · 判定の記録は Git / PR で行う</p>
     ${compareNav}
   </header>
   <div class="layout">
     <section class="col" id="col-intent">
       <h2>検査意図</h2>
       <div class="source-doc">${inlineSource}</div>
-      <div class="judge-panel">
-        <h3>この検査意図の判定</h3>
-        <div class="judge-actions">
-          <button type="button" data-verdict="as_intended">適合</button>
-          <button type="button" data-verdict="needs_fix">不適合</button>
-          <button type="button" data-verdict="deferred">保留</button>
-        </div>
-        <textarea class="comment-box" id="comment-box" placeholder="コメント（任意）"></textarea>
-        <button type="button" class="complete-btn" id="complete-btn" disabled>レビューを完了する</button>
-        <p class="dim-note" id="complete-hint">すべての検査意図を判定すると完了できます。</p>
-      </div>
+      <p class="dim-note">検査意図を選ぶと、対応する実行手順と証跡を照合できます。</p>
     </section>
     <section class="col" id="col-ops">
       <h2>実行手順</h2>
@@ -527,7 +475,6 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
     </section>
   </div>
   <script type="application/json" id="review-data">${JSON.stringify({
-    storageKey,
     spans: spanPayload,
     plans: planPayload,
     steps: stepsPayload,
@@ -540,31 +487,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       let selectedSpanId = null;
       let selectedStepId = null;
       let phase = "after";
-      let state = loadState();
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(data.storageKey);
-          if (!raw) return { decisions: {}, scenarioCompleted: false };
-          const parsed = JSON.parse(raw);
-          return {
-            decisions: parsed.decisions || {},
-            scenarioCompleted: !!parsed.scenarioCompleted,
-          };
-        } catch {
-          return { decisions: {}, scenarioCompleted: false };
-        }
-      }
-      function saveState() {
-        localStorage.setItem(
-          data.storageKey,
-          JSON.stringify({
-            decisions: state.decisions,
-            scenarioCompleted: state.scenarioCompleted,
-            updatedAt: new Date().toISOString(),
-          }),
-        );
-      }
       function escapeHtml(s) {
         return String(s)
           .replaceAll("&", "&amp;")
@@ -572,57 +495,19 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
           .replaceAll(">", "&gt;")
           .replaceAll('"', "&quot;");
       }
-      function statusLabel(kind) {
-        if (kind === "confirmed") return "レビュー済";
-        if (kind === "reviewing") return "レビュー中";
-        if (kind === "missing") return "未マッピング";
-        return "未レビュー";
-      }
-      function classifySpan(span) {
-        if (span.missing) return "missing";
-        if (state.decisions[span.id] && state.decisions[span.id].verdict) return "confirmed";
-        if (selectedSpanId === span.id) return "reviewing";
-        return "pending";
-      }
-      function refreshHeader() {
-        const total = data.spans.length;
-        const decided = data.spans.filter((s) => state.decisions[s.id] && state.decisions[s.id].verdict).length;
-        const allDecided = decided === total && total > 0;
-        document.getElementById("progress-value").textContent =
-          decided + " / " + total + " 件レビュー済";
-        const judgment = allDecided && state.scenarioCompleted ? "完了" : "未完了";
-        document.getElementById("judgment-value").textContent = judgment;
-        const jp = document.getElementById("judgment-pill");
-        jp.classList.toggle("ok", judgment === "完了");
-        const btn = document.getElementById("complete-btn");
-        btn.disabled = !allDecided || state.scenarioCompleted;
-        document.getElementById("complete-hint").textContent = state.scenarioCompleted
-          ? "この実行のレビューは完了しています。"
-          : allDecided
-            ? "判定が揃いました。レビューを完了できます。"
-            : "すべての検査意図を判定すると完了できます。";
-      }
       function refreshIntentStatuses() {
         data.spans.forEach((span) => {
-          const kind = classifySpan(span);
+          const kind = span.missing ? "missing" : selectedSpanId === span.id ? "reviewing" : "pending";
           document.querySelectorAll('[data-status-for="' + span.id + '"]').forEach((el) => {
             el.className = "intent-status " + kind;
-            el.textContent = statusLabel(kind);
+            el.textContent = span.missing ? "未マッピング" : selectedSpanId === span.id ? "選択中" : "";
+            el.hidden = !span.missing && selectedSpanId !== span.id;
           });
           document.querySelectorAll('.intent-span[data-span-id="' + span.id + '"]').forEach((el) => {
             el.classList.toggle("selected", selectedSpanId === span.id);
             el.classList.toggle("related", selectedSpanId === span.id);
           });
         });
-        const decision = selectedSpanId ? state.decisions[selectedSpanId] : null;
-        document.querySelectorAll("[data-verdict]").forEach((btn) => {
-          const v = btn.getAttribute("data-verdict");
-          btn.classList.toggle("active-as", decision && decision.verdict === "as_intended" && v === "as_intended");
-          btn.classList.toggle("active-fix", decision && decision.verdict === "needs_fix" && v === "needs_fix");
-          btn.classList.toggle("active-defer", decision && decision.verdict === "deferred" && v === "deferred");
-        });
-        document.getElementById("comment-box").value = (decision && decision.comment) || "";
-        refreshHeader();
       }
       function relatedStepIds(spanId) {
         const span = spansById[spanId];
@@ -816,39 +701,7 @@ export async function writeReviewHtmlReport(options: RenderReviewReportOptions):
       document.querySelectorAll(".intent-span").forEach((el) => {
         el.addEventListener("click", () => selectSpan(el.getAttribute("data-span-id")));
       });
-      document.querySelectorAll("[data-verdict]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          if (!selectedSpanId) return;
-          const span = spansById[selectedSpanId];
-          if (!span) return;
-          state.decisions[selectedSpanId] = {
-            spanId: selectedSpanId,
-            verdict: btn.getAttribute("data-verdict"),
-            comment: document.getElementById("comment-box").value || "",
-            decidedAt: new Date().toISOString(),
-          };
-          state.scenarioCompleted = false;
-          saveState();
-          refreshIntentStatuses();
-          const next = data.spans.find(
-            (s) => !(state.decisions[s.id] && state.decisions[s.id].verdict),
-          );
-          if (next) selectSpan(next.id);
-        });
-      });
-      document.getElementById("comment-box").addEventListener("change", () => {
-        if (!selectedSpanId || !state.decisions[selectedSpanId]) return;
-        state.decisions[selectedSpanId].comment = document.getElementById("comment-box").value || "";
-        saveState();
-      });
-      document.getElementById("complete-btn").addEventListener("click", () => {
-        state.scenarioCompleted = true;
-        saveState();
-        refreshIntentStatuses();
-      });
-      const first =
-        data.spans.find((s) => !s.missing) ||
-        data.spans[0];
+      const first = data.spans.find((s) => !s.missing) || data.spans[0];
       if (first) selectSpan(first.id);
       else refreshIntentStatuses();
     })();

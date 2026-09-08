@@ -158,50 +158,6 @@ export function summarizeReviewAttention(input: {
   };
 }
 
-/** 人間が記録する検査意図ごとの判断 */
-export type SpanReviewVerdict = "as_intended" | "needs_fix" | "deferred";
-
-export type SpanReviewDecision = {
-  spanId: string;
-  verdict: SpanReviewVerdict;
-  comment?: string;
-  decidedAt?: string;
-};
-
-export type SpanReviewItemStatus = "confirmed" | "reviewing" | "pending" | "missing";
-
-export type SpanReviewProgress = {
-  decidedCount: number;
-  totalCount: number;
-  allDecided: boolean;
-  judgmentLabel: "未完了" | "完了";
-};
-
-/** レビュー進捗（実行機械の合格／不合格とは独立） */
-export function summarizeSpanReviewProgress(
-  spanIds: string[],
-  decisions: Record<string, SpanReviewDecision>,
-  options?: { scenarioCompleted?: boolean },
-): SpanReviewProgress {
-  const decidedCount = spanIds.filter((id) => decisions[id]?.verdict != null).length;
-  const allDecided = spanIds.length > 0 && decidedCount === spanIds.length;
-  const judgmentLabel = allDecided && options?.scenarioCompleted ? "完了" : "未完了";
-  return { decidedCount, totalCount: spanIds.length, allDecided, judgmentLabel };
-}
-
-/** Source Span をレビュー項目として分類する */
-export function classifySpanReviewItem(input: {
-  spanId: string;
-  linkedPlanCount: number;
-  decision?: SpanReviewDecision;
-  selectedSpanId: string | null;
-}): SpanReviewItemStatus {
-  if (input.linkedPlanCount === 0) return "missing";
-  if (input.decision?.verdict) return "confirmed";
-  if (input.selectedSpanId === input.spanId) return "reviewing";
-  return "pending";
-}
-
 /** 実行 Step を人間向けの操作文にする */
 export function humanizeStepAction(step: Step): string {
   switch (step.type) {
