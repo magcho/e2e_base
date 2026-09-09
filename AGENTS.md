@@ -49,6 +49,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 4. **パッケージ境界を守る**。executor は現在のページ状態を Resolver に渡すが、Resolution の判断ロジックを実装しない。reporter は再実行しない。
 5. **Qualification の環境安全性を Runtime の必須責務へ広げない**。初回実行の承認フロー、サンドボックス、接続先制限を暗黙の要件として追加しない。安全機能を追加する場合も任意機能として分離する。
 6. **Binding の変化だけで既定の実行を停止しない**。後続 Step まで実行して Report を完成させ、Binding 差分は Assertion 失敗と分けたレビューシグナルとして記録・表示する。
+7. **Playbook DSL を新しい正本にしない**。将来モデルでは Canonical Playbook IR だけを Git に固定し、DSL は IR から導出する人間向け表示とする。環境依存の Binding や具体化結果は IR を書き換えず、Resolved Execution Plan / Trace と Execution Result に分離する。現行 MVP の DSL パーサをこの方針の実装済み形態と誤認しない。
 
 ## 主要コマンド
 

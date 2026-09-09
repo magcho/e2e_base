@@ -75,11 +75,12 @@ Semantic Target（例: 「送信ボタン」）を Resolve → 実行 → 証跡
 
 技術 MVP 完了後のプロダクト壁打ちにより、先に実行核の利用モデルと人間による確認方法を固める方針に更新した。詳細は [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) を参照する。
 
-1. 現行モデルと Canonical Playbook IR 構想の差分整理
+1. 現行 DSL 入力モデルと、IR を正本・DSL を導出表示とする Canonical Playbook IR 構想の差分整理
 2. Source Span と Plan Node の多対多 Mapping / Source Map 設計
-3. Tool 展開後の Step occurrence と前後 Observation のモデル設計
-4. Source / Plan・Trace / Observation を並べる 3 カラム Review Viewer のプロトタイプ
-5. Qualification と Verification、再認定条件のユースケース検証
-6. Binding の再利用方針と、実行を止めずに Binding 変更を可視化する方法
+3. Canonical IR と、Binding・Tool 展開結果を持つ Resolved Execution Plan / Trace の境界設計
+4. Tool 展開後の Step occurrence と前後 Observation のモデル設計
+5. Source / Plan・Trace / Observation を並べる 3 カラム Review Viewer のプロトタイプ
+6. Qualification と Verification、再認定条件のユースケース検証
+7. Binding の再利用方針と、実行を止めずに Binding 変更を可視化する方法
 
 Binding キャッシュ、ARIA ツリー、AI resolver 評価、並列 Scenario、Playwright Trace Viewer 連携は引き続き候補だが、上記のプロダクトモデルにおける必要性と優先順位を確認してから着手する。
