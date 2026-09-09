@@ -24,6 +24,7 @@ Web 操作の **仕様 → 解決 → 実行 → 観測 → 評価 → 証跡 �
 - [MVP 計画](docs/MVP_PLAN.md)
 - [タスクボード](docs/TASKS.md)
 - [AGENTS.md](AGENTS.md) — AI 向けガイド
+- [submitting-inspection-after-impl](skills/submitting-inspection-after-impl/SKILL.md) — 実装後に検査用 `.playbook` を提出するとき（write / run / qualify を組み合わせ）
 
 ## パッケージ構成
 

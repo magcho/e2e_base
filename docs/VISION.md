@@ -19,7 +19,7 @@ Specification
   → Report
 ```
 
-MVP では **Translation（自然言語→Playbook）を後回し**にし、人手またはテンプレートで書いた Playbook を入口とする。仮説検証の焦点は **Semantic Target の Resolution と証跡** にある。
+MVP では **Translation（自然言語→Playbook）を後回し**にし、人手またはテンプレートで書いた Playbook を入口とする。エージェント向けには [submitting-inspection-after-impl](../skills/submitting-inspection-after-impl/SKILL.md) が提出ユースケースを示し、write / run / qualify の各 Skill を組み合わせる（形式は既存パーサ、意味は Qualification）。仮説検証の焦点は **Semantic Target の Resolution と証跡** にある。
 
 将来も Translation と Runtime は別の機構として扱う。自然言語、DSL、TypeScript などの入力は Canonical Playbook IR へ変換し、反復実行時は Git に固定された IR を直接実行する。元の自然言語を実行のたびに再解釈しない。
 

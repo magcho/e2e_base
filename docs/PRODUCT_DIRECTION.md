@@ -320,7 +320,34 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 14. Qualification 実行環境の安全性は Runtime の必須責務にせず、接続先制限などは任意機能として分離する
 15. Binding が前回から変わっても既定では実行を継続し、差分を Report 上のレビューシグナルとして可視化する
 
-## 12. 未決事項
+## 12. Translation の暫定アプローチ（Skill 先行）
+
+本格的な NL → Canonical Playbook IR Translator は後回しにする。当面の代替は、Unix 原則に近い **単一責務 Skill の組み合わせ** とする。
+
+### Primitive（1 Skill = 1 責務）
+
+| Skill | 責務 |
+|-------|------|
+| [writing-playbook-dsl](../skills/writing-playbook-dsl/SKILL.md) | `.playbook` の書き方・語彙・制約 |
+| [running-playbook](../skills/running-playbook/SKILL.md) | 実行・形式チェック・失敗の切り分け |
+| [qualifying-playbook](../skills/qualifying-playbook/SKILL.md) | 人間 Qualification の観点 |
+
+### Usecase（組み合わせ）
+
+| Skill | いつ |
+|-------|------|
+| [submitting-inspection-after-impl](../skills/submitting-inspection-after-impl/SKILL.md) | 実装後に検査手順を提出する |
+| [revising-playbook-for-requalification](../skills/revising-playbook-for-requalification/SKILL.md) | 既存 Playbook を直して再認定する |
+
+運用上の約束:
+
+1. 形式チェックは新規 Validator を増やさず、既存の `parsePlaybook`（`e2e-base run` 入口）成功をもって足りるとする
+2. 意味的妥当性は Runtime 実行と Report による Qualification で確認する
+3. Translation を Runtime 実行ループに入れない（反復実行時に NL を再解釈しない）
+
+将来 Translator を独立機構として追加する場合も、出力は同じ Playbook / IR 制約を通り、Runtime 境界は変えない。
+
+## 13. 未決事項
 
 次は議論で方向性が出たものの、まだ仕様として確定していない。
 
@@ -337,7 +364,7 @@ Binding キャッシュは単なる高速化ではなく、人間が妥当と確
 - Report の保存・共有方法
 - 強い隔離、署名、改ざん検知が必要になる利用境界
 
-## 13. 今後の設計・実装への示唆
+## 14. 今後の設計・実装への示唆
 
 次の実装へ進む前に、現行型との差分を明示したうえで以下を設計する。
 
