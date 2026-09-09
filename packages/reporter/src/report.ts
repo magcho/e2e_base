@@ -16,7 +16,9 @@ function statusBadge(status: string): string {
       ? "#0a7f3f"
       : status === "failed" || status === "error"
         ? "#b00020"
-        : "#666";
+        : status === "skipped"
+          ? "#6b7280"
+          : "#666";
   return `<span class="badge" style="background:${color}">${escapeHtml(status)}</span>`;
 }
 
@@ -79,6 +81,7 @@ export type RenderReportOptions = {
   playbookPath?: string;
 };
 
+/** 既存 MVP デモ用の線形 Evidence Report（後方互換） */
 export async function writeHtmlReport(options: RenderReportOptions): Promise<string> {
   const { result, outputPath, playbookPath } = options;
   const reportDir = path.dirname(outputPath);
@@ -120,3 +123,9 @@ export async function writeHtmlReport(options: RenderReportOptions): Promise<str
   await writeFile(outputPath, html, "utf8");
   return outputPath;
 }
+
+export {
+  writeReviewHtmlReport,
+  type CompareRunLink,
+  type RenderReviewReportOptions,
+} from "./review-report.js";

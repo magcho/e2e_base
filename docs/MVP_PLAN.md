@@ -75,9 +75,12 @@ Semantic Target（例: 「送信ボタン」）を Resolve → 実行 → 証跡
 
 技術 MVP 完了後のプロダクト壁打ちにより、先に実行核の利用モデルと人間による確認方法を固める方針に更新した。詳細は [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) を参照する。
 
-1. 現行モデルと Canonical Playbook IR 構想の差分整理
-2. Source Span と Plan Node の多対多 Mapping / Source Map 設計
-3. Tool 展開後の Step occurrence と前後 Observation のモデル設計
+1. ~~現行モデルと Canonical Playbook IR 構想の差分整理~~ → Review Viewer 縦切りで必要分を [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) に反映
+2. ~~Source Span と Plan Node の多対多 Mapping / Source Map 設計~~ → `examples/review/` + `ReviewBundle`
+3. ~~Tool 展開後の Step occurrence と前後 Observation のモデル設計~~ → `occurrencePath` / `observations[]`
+4. 3 カラム Review Viewer プロトタイプ（`pnpm demo:review`）
+5. Binding 変更のレビューシグナル（実行継続）
+6. Qualification / Verification の運用フロー詳細（承認記録は未着手）
 4. Source / Plan・Trace / Observation を並べる 3 カラム Review Viewer のプロトタイプ
 5. Qualification と Verification、再認定条件のユースケース検証
 6. Binding の再利用方針と、実行を止めずに Binding 変更を可視化する方法

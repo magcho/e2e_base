@@ -15,6 +15,7 @@
     "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "prepare": "simple-git-hooks",
     "demo": "pnpm build && pnpm --filter @e2e-base/cli exec node ./dist/cli.js run ../../examples/submit-form.playbook --serve-fixtures --out ../../reports/latest",
+    "demo:review": "pnpm build && pnpm --filter @e2e-base/cli exec node ./dist/cli.js review-demo --out ../../reports/review",
     "playwright:install": "pnpm --filter @e2e-base/executor exec playwright install chromium"
   },
   "simple-git-hooks": {

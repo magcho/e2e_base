@@ -109,6 +109,9 @@ export type BoundStep = {
   binding?: Binding;
 };
 
+/** Step 前後の観測フェーズ（Review Viewer 右カラム用） */
+export type ObservationPhase = "before" | "after" | "assertion" | "error";
+
 export type Observation = {
   id: NodeId;
   stepId: NodeId;
@@ -116,6 +119,8 @@ export type Observation = {
   screenshotPath?: string;
   visibleTextSample?: string;
   capturedAt: string;
+  /** 未指定時は after 相当（既存デモ互換） */
+  phase?: ObservationPhase;
 };
 
 export type Evaluation = {
@@ -128,15 +133,38 @@ export type Evaluation = {
 
 export type StepStatus = "passed" | "failed" | "skipped" | "error";
 
+/**
+ * Binding 変更シグナル（Assertion 失敗とは別）。
+ * core/review.ts の BindingChangeSignal と同形。循環を避けるため型をここに定義。
+ */
+export type BindingChangeSignal = {
+  changed: true;
+  previous: Binding;
+  current: Binding;
+  reason: string;
+};
+
 export type StepResult = {
   id: NodeId;
   stepId: NodeId;
   status: StepStatus;
   binding?: Binding;
+  /**
+   * 互換用の代表 Observation（通常は after / assertion / error）。
+   * before/after 両方は observations を参照。
+   */
   observation?: Observation;
+  /** 実行前後などの Observation 列 */
+  observations?: Observation[];
   evaluation?: Evaluation;
   errorMessage?: string;
   durationMs: number;
+  /** Tool 展開前の Plan Node（Scenario 上の Step ID。CALL 展開時は CALL の ID） */
+  planNodeId?: NodeId;
+  /** 実行 occurrence の識別子（同一 Tool の複数呼び出しを区別） */
+  occurrencePath?: string;
+  /** 前回 Binding との差分（あればレビューシグナル） */
+  bindingChange?: BindingChangeSignal;
 };
 
 export type ScenarioResult = {

@@ -2,11 +2,12 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
   childId,
-  expandScenarioSteps,
+  expandScenarioOccurrences,
   type Binding,
   type Evaluation,
   type ExecutableStep,
   type Observation,
+  type ObservationPhase,
   type PageCandidate,
   type PageSnapshot,
   type Playbook,
@@ -25,6 +26,11 @@ export type ExecuteOptions = {
   artifactDir: string;
   headless?: boolean;
   baseURL?: string;
+  /**
+   * 失敗後も残り Step を skipped として結果に残す（既定 true）。
+   * Binding 変更だけでは停止しない（変更検知は Reporter / annotateBindingChanges 側）。
+   */
+  recordSkippedOnFailure?: boolean;
 };
 
 async function collectCandidates(page: Page): Promise<PageSnapshot> {
@@ -144,19 +150,21 @@ async function captureObservation(
   stepId: string,
   artifactDir: string,
   index: number,
+  phase: ObservationPhase,
 ): Promise<Observation> {
   await mkdir(artifactDir, { recursive: true });
-  const filename = `step-${String(index).padStart(3, "0")}.png`;
+  const filename = `step-${String(index).padStart(3, "0")}-${phase}.png`;
   const screenshotPath = path.join(artifactDir, filename);
   await page.screenshot({ path: screenshotPath, fullPage: true });
   const visibleTextSample = (await page.locator("body").innerText()).slice(0, 500);
   return {
-    id: childId(stepId, "obs", index),
+    id: childId(stepId, "obs", index, phase),
     stepId,
     url: page.url(),
     screenshotPath,
     visibleTextSample,
     capturedAt: new Date().toISOString(),
+    phase,
   };
 }
 
@@ -212,22 +220,32 @@ async function runStep(
   resolver: TargetResolver,
   artifactDir: string,
   index: number,
+  planNodeId: string,
+  occurrencePath: string,
 ): Promise<StepResult> {
   const started = Date.now();
   let binding: Binding | undefined;
+  const base = {
+    planNodeId,
+    occurrencePath,
+  };
   try {
     if (step.type === "NAVIGATE") {
+      const before = await captureObservation(page, step.id, artifactDir, index, "before");
       await page.goto(step.url, { waitUntil: "domcontentloaded" });
-      const observation = await captureObservation(page, step.id, artifactDir, index);
+      const after = await captureObservation(page, step.id, artifactDir, index, "after");
       return {
         id: childId(step.id, "res", index),
         stepId: step.id,
         status: "passed",
-        observation,
+        observation: after,
+        observations: [before, after],
         durationMs: Date.now() - started,
+        ...base,
       };
     }
 
+    const before = await captureObservation(page, step.id, artifactDir, index, "before");
     binding = await ensureBinding(page, step, resolver);
     if (!binding) {
       throw new Error("binding missing for targeted step");
@@ -240,33 +258,39 @@ async function runStep(
       await loc.first().fill(step.text);
     } else if (step.type === "ASSERT") {
       const evaluation = await evaluateAssertion(page, step, binding);
-      const observation = await captureObservation(page, step.id, artifactDir, index);
+      const assertionObs = await captureObservation(page, step.id, artifactDir, index, "assertion");
       return {
         id: childId(step.id, "res", index),
         stepId: step.id,
         status: evaluation.passed ? "passed" : "failed",
         binding,
-        observation,
+        observation: assertionObs,
+        observations: [before, assertionObs],
         evaluation,
         durationMs: Date.now() - started,
         errorMessage: evaluation.passed ? undefined : evaluation.message,
+        ...base,
       };
     }
 
-    const observation = await captureObservation(page, step.id, artifactDir, index);
+    const after = await captureObservation(page, step.id, artifactDir, index, "after");
     return {
       id: childId(step.id, "res", index),
       stepId: step.id,
       status: "passed",
       binding,
-      observation,
+      observation: after,
+      observations: [before, after],
       durationMs: Date.now() - started,
+      ...base,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     let observation: Observation | undefined;
+    const observations: Observation[] = [];
     try {
-      observation = await captureObservation(page, step.id, artifactDir, index);
+      observation = await captureObservation(page, step.id, artifactDir, index, "error");
+      observations.push(observation);
     } catch {
       // ignore screenshot failures on error path
     }
@@ -276,17 +300,20 @@ async function runStep(
       status: "error",
       binding,
       observation,
+      observations: observations.length > 0 ? observations : undefined,
       errorMessage: message,
       durationMs: Date.now() - started,
+      ...base,
     };
   }
 }
 
 export async function executeScenario(options: ExecuteOptions): Promise<ScenarioResult> {
   const { playbook, scenario, resolver, artifactDir } = options;
-  const steps = expandScenarioSteps(playbook, scenario);
+  const occurrences = expandScenarioOccurrences(playbook, scenario);
   const startedAt = new Date().toISOString();
   await mkdir(artifactDir, { recursive: true });
+  const recordSkipped = options.recordSkippedOnFailure ?? true;
 
   const browser = await chromium.launch({ headless: options.headless ?? true });
   const context = await browser.newContext({ baseURL: options.baseURL });
@@ -294,12 +321,35 @@ export async function executeScenario(options: ExecuteOptions): Promise<Scenario
   const results: StepResult[] = [];
 
   try {
-    for (let i = 0; i < steps.length; i++) {
-      const step = steps[i]!;
-      const result = await runStep(page, step, resolver, artifactDir, i);
+    let halted = false;
+    for (let i = 0; i < occurrences.length; i++) {
+      const occ = occurrences[i]!;
+      if (halted) {
+        if (recordSkipped) {
+          results.push({
+            id: childId(occ.step.id, "res", i, "skipped"),
+            stepId: occ.step.id,
+            status: "skipped",
+            durationMs: 0,
+            planNodeId: occ.planNodeId,
+            occurrencePath: occ.occurrencePath,
+          });
+        }
+        continue;
+      }
+      const result = await runStep(
+        page,
+        occ.step,
+        resolver,
+        artifactDir,
+        i,
+        occ.planNodeId,
+        occ.occurrencePath,
+      );
       results.push(result);
       if (result.status === "failed" || result.status === "error") {
-        break;
+        // Binding 変更ではここに来ない。Assertion / 実行エラー時のみ後続を skipped にする。
+        halted = true;
       }
     }
   } finally {

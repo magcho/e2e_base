@@ -1,1 +1,7 @@
-export { writeHtmlReport, type RenderReportOptions } from "./report.js";
+export {
+  writeHtmlReport,
+  writeReviewHtmlReport,
+  type CompareRunLink,
+  type RenderReportOptions,
+  type RenderReviewReportOptions,
+} from "./report.js";

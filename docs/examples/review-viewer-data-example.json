@@ -1,0 +1,175 @@
+{
+  "_comment": "Review Viewer 縦切りのための具体データ例。実装前に 3 カラムが成立することを確認するためのサンプル。",
+  "sourceDocument": {
+    "id": "src_submit_intent",
+    "kind": "natural-language",
+    "label": "検査意図（手書き Source）",
+    "content": "お問い合わせフォームを開き、名前とメールを入力して送信する。\n送信後に成功メッセージが表示されることを確認する。\n（未マッピング例）管理者向けの監査ログも確認する。"
+  },
+  "sourceSpans": [
+    {
+      "id": "span_open",
+      "sourceDocumentId": "src_submit_intent",
+      "start": 0,
+      "end": 13,
+      "label": "フォームを開く"
+    },
+    {
+      "id": "span_fill",
+      "sourceDocumentId": "src_submit_intent",
+      "start": 14,
+      "end": 29,
+      "label": "名前とメールを入力して送信"
+    },
+    {
+      "id": "span_assert",
+      "sourceDocumentId": "src_submit_intent",
+      "start": 31,
+      "end": 55,
+      "label": "成功メッセージを確認"
+    },
+    {
+      "id": "span_unmapped",
+      "sourceDocumentId": "src_submit_intent",
+      "start": 57,
+      "end": 82,
+      "label": "監査ログ確認（未マッピング）"
+    }
+  ],
+  "planNodes": [
+    {
+      "id": "plan_navigate",
+      "label": "NAVIGATE フォーム",
+      "stepType": "NAVIGATE"
+    },
+    {
+      "id": "plan_call_fill",
+      "label": "CALL fill_contact",
+      "stepType": "CALL"
+    },
+    {
+      "id": "plan_click_submit",
+      "label": "CLICK 送信ボタン",
+      "stepType": "CLICK"
+    },
+    {
+      "id": "plan_assert_visible",
+      "label": "ASSERT visible 成功メッセージ",
+      "stepType": "ASSERT"
+    },
+    {
+      "id": "plan_assert_text",
+      "label": "ASSERT text 成功メッセージ",
+      "stepType": "ASSERT"
+    },
+    {
+      "id": "plan_unmapped",
+      "label": "（生成のみ）将来用プレースホルダ",
+      "stepType": "ASSERT"
+    }
+  ],
+  "links": [
+    {
+      "sourceSpanId": "span_open",
+      "planNodeId": "plan_navigate"
+    },
+    {
+      "sourceSpanId": "span_fill",
+      "planNodeId": "plan_call_fill"
+    },
+    {
+      "sourceSpanId": "span_fill",
+      "planNodeId": "plan_click_submit"
+    },
+    {
+      "sourceSpanId": "span_assert",
+      "planNodeId": "plan_assert_visible"
+    },
+    {
+      "sourceSpanId": "span_assert",
+      "planNodeId": "plan_assert_text"
+    }
+  ],
+  "stepExecutions": [
+    {
+      "id": "exec_0",
+      "planNodeId": "plan_navigate",
+      "occurrencePath": "scn/stp0:NAVIGATE",
+      "status": "passed",
+      "observations": [
+        {
+          "phase": "before",
+          "screenshotPath": "artifacts/step-000-before.png"
+        },
+        {
+          "phase": "after",
+          "screenshotPath": "artifacts/step-000-after.png"
+        }
+      ]
+    },
+    {
+      "id": "exec_1",
+      "planNodeId": "plan_call_fill",
+      "occurrencePath": "scn/stp1:CALL/fill_contact#0/TYPE@0",
+      "status": "passed",
+      "binding": {
+        "strategy": "accessible_name_exact",
+        "locator": {
+          "strategy": "role",
+          "value": "textbox",
+          "name": "名前入力"
+        }
+      },
+      "observations": [
+        {
+          "phase": "before",
+          "screenshotPath": "artifacts/step-001-before.png"
+        },
+        {
+          "phase": "after",
+          "screenshotPath": "artifacts/step-001-after.png"
+        }
+      ]
+    },
+    {
+      "id": "exec_click",
+      "planNodeId": "plan_click_submit",
+      "occurrencePath": "scn/stp2:CLICK",
+      "status": "passed",
+      "bindingChange": {
+        "changed": true,
+        "previous": {
+          "strategy": "accessible_name_exact",
+          "locator": {
+            "strategy": "role",
+            "value": "button",
+            "name": "送信ボタン"
+          }
+        },
+        "current": {
+          "strategy": "accessible_name_exact",
+          "locator": {
+            "strategy": "css",
+            "value": "[data-testid=\"送信ボタン\"]"
+          }
+        },
+        "reason": "同一 Semantic Target が別 Locator に Resolve された"
+      },
+      "observations": [
+        {
+          "phase": "before",
+          "screenshotPath": "artifacts/step-003-before.png"
+        },
+        {
+          "phase": "after",
+          "screenshotPath": "artifacts/step-003-after.png"
+        }
+      ]
+    }
+  ],
+  "viewerExpectations": {
+    "left": "Source Span をクリックすると中央の対応 Plan Node がハイライト。span_unmapped は未マッピング表示。",
+    "center": "Plan / Execution。Tool 展開の TYPE は CALL の occurrence。plan_unmapped は未実行。Binding 変更はレビューシグナル。",
+    "right": "選択 Step の before/after Screenshot と Assertion Expected/Actual。"
+  }
+}
